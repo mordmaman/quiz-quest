@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Quiz Quest</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#5b4bdb">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --ink: #26215c; --accent: #5b4bdb; --accent-d: #3f31b0; --good: #1fa865; --bad: #e5484d; --line: #e4e1ff; }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; min-height: 100%; color: var(--ink); font-family: Fredoka, system-ui, sans-serif;
+    background: linear-gradient(160deg, #e6e9ff 0%, #fbefff 50%, #fff3e3 100%) fixed;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button { font-family: inherit; color: inherit; cursor: pointer; }
+  input { font-family: inherit; color: inherit; }
+  .hidden { display: none !important; }
+
+  #bar {
+    position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+    background: rgba(255,255,255,0.85); border-bottom: 2px solid var(--line);
+  }
+  #bar .title { flex: 1; font-weight: 700; font-size: 20px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .icon-btn { width: 42px; height: 42px; flex: none; border-radius: 50%; border: 2px solid var(--line); background: #fff; font-size: 19px; padding: 0; }
+  .icon-btn.ghost { visibility: hidden; }
+  main { max-width: 920px; margin: 0 auto; padding: 16px 14px 48px; }
+  h1 { font-size: clamp(26px, 5vw, 38px); margin: 6px 0 4px; text-align: center; }
+  h2 { font-size: 22px; margin: 18px 0 8px; }
+  .sub { text-align: center; opacity: 0.75; margin: 0 0 16px; font-size: 17px; }
+  .logo { text-align: center; font-size: clamp(34px, 7vw, 54px); font-weight: 700; margin: 4px 0 0; color: var(--accent);
+    text-shadow: 3px 3px 0 #ffd166; letter-spacing: 0.5px; }
+
+  .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .card { background: #fff; border-radius: 22px; box-shadow: 0 5px 0 rgba(60,50,150,0.12); border: 3px solid transparent; }
+  .pcard { padding: 14px 10px 12px; text-align: center; transition: transform 0.08s; }
+  .pcard:active, .tcard:active { transform: scale(0.97); }
+  .pcard .av { font-size: 54px; line-height: 1.1; }
+  .pcard .nm { font-weight: 700; font-size: 20px; margin: 4px 0; word-break: break-word; }
+  .pcard .nm.empty { opacity: 0.55; font-weight: 600; font-size: 16px; }
+  .pcard .stars { font-size: 14px; margin-top: 4px; opacity: 0.8; }
+  .pcard.sel { border-color: var(--accent); background: #f3f1ff; }
+  .pcard.off { opacity: 0.45; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-weight: 600; font-size: 13px; color: #fff; white-space: nowrap; }
+
+  .tgrid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+  .tcard { padding: 14px 12px; text-align: center; transition: transform 0.08s; border-bottom: 6px solid var(--c); }
+  .tcard .ic { font-size: 42px; }
+  .tcard .nm { font-weight: 700; font-size: 18px; margin-top: 2px; }
+  .tcard .st { font-size: 15px; margin-top: 2px; letter-spacing: 1px; }
+  .tcard.sel { border-color: var(--c); background: #faf9ff; }
+
+  .big-btn {
+    display: block; width: 100%; padding: 14px 16px; border-radius: 18px; border: none; font-size: 20px; font-weight: 700;
+    background: var(--accent); color: #fff; box-shadow: 0 5px 0 var(--accent-d); margin-top: 12px;
+  }
+  .big-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--accent-d); }
+  .big-btn.alt { background: #fff; color: var(--ink); box-shadow: 0 5px 0 #d9d5ff; border: 2px solid var(--line); }
+  .big-btn.fam { background: linear-gradient(90deg, #ff8a4c, #ff5c8a); box-shadow: 0 5px 0 #c9406a; }
+  .big-btn:disabled { opacity: 0.45; }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn-row > * { flex: 1 1 200px; }
+
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin: 8px 0; }
+  .chip { border: 2px solid #d9d5ff; background: #fff; border-radius: 999px; padding: 6px 13px; font-weight: 600; font-size: 15px; }
+  .chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .label { font-weight: 700; text-align: center; margin-top: 14px; }
+
+  /* players setup */
+  .prow { display: grid; grid-template-columns: 60px 1fr 42px; gap: 10px; align-items: center; padding: 12px; margin-bottom: 10px; }
+  .prow .avb { font-size: 38px; width: 60px; height: 60px; border-radius: 16px; border: 2px dashed #cfc9ff; background: #f7f6ff; padding: 0; }
+  .prow input { width: 100%; font-size: 19px; padding: 8px 12px; border-radius: 12px; border: 2px solid var(--line); }
+  .prow .chips { justify-content: flex-start; margin: 8px 0 0; }
+  .prow .chip { font-size: 13px; padding: 4px 10px; }
+  .prow .del { width: 42px; height: 42px; border-radius: 50%; border: 2px solid #ffd3d3; background: #fff; font-size: 16px; }
+  .prow .opts { grid-column: 2 / 4; }
+  .tiny { font-size: 13px; opacity: 0.7; }
+  .toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; margin-top: 8px; border: none; background: none; padding: 0; }
+  .toggle .sw { width: 38px; height: 22px; border-radius: 999px; background: #d9d5ff; position: relative; transition: background 0.15s; }
+  .toggle .sw::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: left 0.15s; }
+  .toggle.on .sw { background: var(--good); }
+  .toggle.on .sw::after { left: 19px; }
+
+  /* quiz */
+  .qhead { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .who { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 18px; }
+  .who .av { font-size: 30px; }
+  .progress { display: flex; gap: 5px; flex-wrap: wrap; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; background: #dcd8ff; }
+  .dot.ok { background: var(--good); } .dot.no { background: var(--bad); } .dot.now { background: var(--accent); transform: scale(1.3); }
+  .qcard { padding: 20px 18px 18px; text-align: center; }
+  .qmeta { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .qtext { font-size: clamp(22px, 4.2vw, 31px); font-weight: 600; line-height: 1.3; white-space: pre-line; overflow-wrap: anywhere; }
+  .readrow { display: flex; justify-content: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .readbtn { border: 2px solid var(--line); background: #f7f6ff; border-radius: 999px; padding: 5px 14px; font-weight: 600; font-size: 15px; }
+  .answers { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+  @media (max-width: 560px) { .answers { grid-template-columns: 1fr; } }
+  .ans {
+    display: flex; align-items: center; gap: 10px; text-align: left; background: #fff; border: 3px solid var(--line);
+    border-radius: 18px; padding: 10px 14px; font-size: clamp(17px, 2.8vw, 21px); font-weight: 600; min-height: 62px;
+    box-shadow: 0 4px 0 var(--line);
+  }
+  .ans .l { flex: none; width: 34px; height: 34px; border-radius: 50%; background: #efedff; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--accent); }
+  .ans:not(:disabled):active { transform: translateY(2px); }
+  .ans.correct { background: #e3f8ee; border-color: var(--good); box-shadow: 0 4px 0 #9fe0c0; }
+  .ans.correct .l { background: var(--good); color: #fff; }
+  .ans.wrong { background: #fde8e8; border-color: var(--bad); box-shadow: 0 4px 0 #f3b0b2; }
+  .ans.wrong .l { background: var(--bad); color: #fff; }
+  .ans.dim { opacity: 0.45; }
+  .feedback { margin-top: 14px; border-radius: 18px; padding: 12px 16px; text-align: left; animation: pop 0.25s ease-out; }
+  .feedback.good { background: #e3f8ee; } .feedback.bad { background: #fff1e6; }
+  .feedback .head { font-size: 21px; font-weight: 700; }
+  .feedback .fact { margin-top: 6px; font-size: 17px; line-height: 1.4; }
+  @keyframes pop { from { transform: scale(0.95); opacity: 0; } to { transform: none; opacity: 1; } }
+  .streak { font-weight: 700; color: #e8590c; }
+
+  .confirm { background: #fff7e0; border: 2px solid #ffd166; border-radius: 16px; padding: 10px 14px; margin-bottom: 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: space-between; }
+  .confirm button { border: none; border-radius: 999px; padding: 8px 16px; font-weight: 700; }
+
+  /* results */
+  .score-big { font-size: clamp(54px, 12vw, 84px); font-weight: 700; text-align: center; line-height: 1; margin-top: 8px; }
+  .stars-big { font-size: clamp(40px, 9vw, 58px); text-align: center; letter-spacing: 6px; }
+  .msg { text-align: center; font-size: 22px; font-weight: 600; margin: 6px 0 4px; }
+  .review { padding: 12px 16px; margin-top: 10px; }
+  .review .q { font-weight: 600; }
+  .review .a { color: var(--good); font-weight: 700; margin-top: 2px; }
+  .review .f { font-size: 15px; opacity: 0.8; margin-top: 2px; }
+
+  .handoff { text-align: center; padding: 28px 18px; }
+  .handoff .av { font-size: 96px; line-height: 1.1; }
+  .handoff .nm { font-size: clamp(30px, 7vw, 44px); font-weight: 700; }
+  .scoreboard { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 12px 0; }
+  .sb { background: #fff; border-radius: 14px; padding: 6px 12px; font-weight: 600; box-shadow: 0 3px 0 rgba(60,50,150,0.1); }
+  .sb.now { outline: 3px solid var(--accent); }
+  .podium { display: grid; gap: 10px; margin-top: 14px; }
+  .prow2 { display: flex; align-items: center; gap: 12px; padding: 12px 16px; }
+  .prow2 .pl { font-size: 30px; width: 44px; text-align: center; }
+  .prow2 .av { font-size: 36px; }
+  .prow2 .nm { flex: 1; font-weight: 700; font-size: 20px; }
+  .prow2 .sc { font-size: 24px; font-weight: 700; }
+  .note { font-size: 14px; opacity: 0.7; text-align: center; margin-top: 16px; line-height: 1.4; }
+  #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 50; }
+</style>
+</head>
+<body>
+<header id="bar">
+  <button class="icon-btn" id="backBtn" aria-label="Back">←</button>
+  <div class="title" id="barTitle">Quiz Quest</div>
+  <button class="icon-btn" id="soundBtn" aria-label="Sound">🔊</button>
+</header>
+<main id="main"></main>
+<canvas id="confetti"></canvas>
+
+<script>
+// =====================================================================
+//  QUESTIONS: each one is [question, right answer, wrong, wrong, wrong, fact]
+// =====================================================================
+const QB = {};
+/*QUESTIONS*/
+
+/*MATHS*/
+
+// =====================================================================
+//  SETTINGS
+// =====================================================================
+const CONFIG = { title: 'Quiz Quest', soloQuestions: 10 };
+const LEVELS = {
+  k7:    { label: 'Age 7',    colour: '#1fa865' },
+  k11:   { label: 'Age 11',   colour: '#2f8fe0' },
+  k14:   { label: 'Age 14',   colour: '#8a4fe0' },
+  adult: { label: 'Grown-up', colour: '#e0573a' },
+};
+const TOPICS = [
+  { id: 'animals',   name: 'Animals & Nature', icon: '🐾', colour: '#3fbf6f' },
+  { id: 'science',   name: 'Science',          icon: '🔬', colour: '#2f8fe0' },
+  { id: 'geography', name: 'Geography',        icon: '🌍', colour: '#1fa5a5' },
+  { id: 'history',   name: 'History',          icon: '🏰', colour: '#c0843a' },
+  { id: 'space',     name: 'Space',            icon: '🚀', colour: '#5a4fcf' },
+  { id: 'words',     name: 'Words',            icon: '📚', colour: '#e05a8a' },
+  { id: 'maths',     name: 'Maths',            icon: '🔢', colour: '#f0a020' },
+  { id: 'sport',     name: 'Sport',            icon: '⚽', colour: '#2e9e4a' },
+  { id: 'mixed',     name: 'Mixed Bag',        icon: '🎲', colour: '#7a6fa0' },
+];
+const AVATARS = ['🦖', '🦄', '⚽', '👑', '🧔', '🐱', '🐶', '🦊', '🐼', '🚀', '🌟', '🎸', '🦁', '🐸', '🎨', '🐢', '🦉', '🐬'];
+
+// ---------- helpers ----------
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const shuffle = a => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const uid = () => Math.random().toString(36).slice(2, 9);
+const topicById = id => TOPICS.find(t => t.id === id);
+
+// ---------- saving (on this device only) ----------
+const KEY = 'quizquest.v1';
+function defaultPlayers() {
+  return [
+    { id: uid(), name: '', level: 'k7', avatar: '🦖', read: true },
+    { id: uid(), name: '', level: 'k11', avatar: '🦄', read: false },
+    { id: uid(), name: '', level: 'k14', avatar: '⚽', read: false },
+    { id: uid(), name: '', level: 'adult', avatar: '👑', read: false },
+    { id: uid(), name: '', level: 'adult', avatar: '🧔', read: false },
+  ];
+}
+let S;
+try { S = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { S = null; }
+if (!S || !Array.isArray(S.players)) S = { players: defaultPlayers(), best: {}, seen: {}, sound: true, setupDone: false, fam: null };
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+const nameOf = p => p.name.trim() || `${LEVELS[p.level].label} player`;
+const playerById = id => S.players.find(p => p.id === id);
+function starsFor(score, total) { const r = score / total; return r >= 0.9 ? 3 : r >= 0.7 ? 2 : r >= 0.5 ? 1 : 0; }
+function totalStars(p) { let n = 0; for (const k in S.best) if (k.startsWith(p.id + '|')) n += S.best[k]; return n; }
+const starStr = n => '★'.repeat(n) + '☆'.repeat(3 - n);
+
+// ---------- sound & speech ----------
+let ac = null;
+function initAudio() {
+  if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { ac = null; } }
+  if (ac && ac.state === 'suspended') ac.resume().catch(() => {});
+}
+function tone(f, dur, type, vol, delay) {
+  if (!ac || !S.sound) return;
+  const t0 = ac.currentTime + (delay || 0), o = ac.createOscillator(), g = ac.createGain();
+  o.type = type || 'triangle'; o.frequency.setValueAtTime(f, t0);
+  g.gain.setValueAtTime(vol || 0.12, t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(g); g.connect(ac.destination); o.start(t0); o.stop(t0 + dur + 0.02);
+}
+const sfx = {
+  right() { [660, 880, 1320].forEach((f, i) => tone(f, 0.16, 'triangle', 0.12, i * 0.07)); },
+  wrong() { tone(330, 0.18, 'sine', 0.12); tone(247, 0.3, 'sine', 0.12, 0.15); },
+  done()  { [523, 659, 784, 1047, 784, 1047].forEach((f, i) => tone(f, 0.2, 'triangle', 0.12, i * 0.1)); },
+  tap()   { tone(900, 0.05, 'sine', 0.05); },
+};
+const canSpeak = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+const stripEmoji = s => s.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}\u{2B50}\u{2B55}]/gu, '').replace(/\s+/g, ' ').trim();
+function speak(text) {
+  if (!canSpeak || !S.sound) return;
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(stripEmoji(text).replace(/−/g, 'minus ').replace(/×/g, 'times').replace(/÷/g, 'divided by').replace(/√/g, 'the square root of '));
+    const voices = speechSynthesis.getVoices();
+    const v = voices.find(v => /en-GB/i.test(v.lang)) || voices.find(v => /^en/i.test(v.lang));
+    if (v) u.voice = v;
+    u.rate = 0.92; u.lang = (v && v.lang) || 'en-GB';
+    speechSynthesis.speak(u);
+  } catch (e) {}
+}
+function stopSpeaking() { if (canSpeak) try { speechSynthesis.cancel(); } catch (e) {} }
+
+// ---------- question picking ----------
+function makeQuestion(raw, id, topic) {
+  const [text, correct, w1, w2, w3, fact] = raw;
+  return { id, topic, text, correct, fact, options: shuffle([correct, w1, w2, w3]) };
+}
+function poolFor(topic, level) {
+  if (!QB[topic] || !QB[topic][level]) return [];
+  return QB[topic][level].map((raw, i) => ({ raw, id: `${topic}.${level}.${i}` }));
+}
+// least-recently-seen first, so questions don't repeat until you've seen them all
+function drawFromPool(topic, level, used) {
+  const pool = poolFor(topic, level).filter(x => !used.has(x.id));
+  if (!pool.length) return null;
+  const best = shuffle(pool).sort((a, b) => (S.seen[a.id] || 0) - (S.seen[b.id] || 0))[0];
+  return makeQuestion(best.raw, best.id, topic);
+}
+function drawMaths(level, used) {
+  for (let i = 0; i < 30; i++) {
+    const raw = MATHS.generate(level), id = 'maths:' + raw[0];
+    if (!used.has(id)) return makeQuestion(raw, id, 'maths');
+  }
+  const raw = MATHS.generate(level); return makeQuestion(raw, 'maths:' + raw[0] + Math.random(), 'maths');
+}
+function drawOne(topic, level, used) {
+  let t = topic;
+  if (t === 'mixed') t = pick(TOPICS.filter(x => x.id !== 'mixed')).id;
+  let q = t === 'maths' ? drawMaths(level, used) : drawFromPool(t, level, used);
+  if (!q) { // ran out in this topic: fall back to any topic
+    for (const tt of shuffle(TOPICS.filter(x => x.id !== 'mixed' && x.id !== 'maths'))) { q = drawFromPool(tt.id, level, used); if (q) break; }
+    if (!q) q = drawMaths(level, used);
+  }
+  used.add(q.id);
+  return q;
+}
+
+// ---------- screens ----------
+let screen = 'home', Q = null, pickedPlayer = null, pickedLevel = null;
+const main = $('main');
+function setBar(title, back) {
+  $('barTitle').textContent = title;
+  $('backBtn').classList.toggle('ghost', !back);
+  $('backBtn').onclick = back || null;
+}
+function go(fn) { stopSpeaking(); stopConfetti(); window.scrollTo(0, 0); fn(); }
+
+function renderHome() {
+  screen = 'home';
+  setBar(CONFIG.title, null);
+  main.innerHTML = `
+    <div class="logo">Quiz Quest</div>
+    <p class="sub">Who's playing?</p>
+    <div class="grid">${S.players.map(p => `
+      <button class="card pcard" data-solo="${p.id}">
+        <div class="av">${p.avatar}</div>
+        <div class="nm ${p.name.trim() ? '' : 'empty'}">${esc(nameOf(p))}</div>
+        <span class="badge" style="background:${LEVELS[p.level].colour}">${LEVELS[p.level].label}</span>
+        <div class="stars">⭐ ${totalStars(p)} stars</div>
+      </button>`).join('')}
+    </div>
+    <div class="btn-row">
+      <button class="big-btn fam" id="famBtn" ${S.players.length < 2 ? 'disabled' : ''}>⚔️ Family Battle</button>
+      <button class="big-btn alt" id="editBtn">✏️ Edit players</button>
+    </div>
+    <p class="note">Everyone plays at their own level, so Family Battles are fair.<br>Names and scores are saved on this device only.</p>`;
+  main.querySelectorAll('[data-solo]').forEach(b => b.onclick = () => { sfx.tap(); pickedPlayer = playerById(b.dataset.solo); pickedLevel = pickedPlayer.level; go(renderTopics); });
+  $('famBtn').onclick = () => { sfx.tap(); go(renderFamilySetup); };
+  $('editBtn').onclick = () => { sfx.tap(); go(renderPlayers); };
+}
+
+function renderPlayers() {
+  screen = 'players';
+  setBar('Players', S.setupDone ? () => go(renderHome) : null);
+  main.innerHTML = `
+    <h1>${S.setupDone ? 'Edit players' : 'Welcome to Quiz Quest! 👋'}</h1>
+    <p class="sub">Type everyone's name and pick their level. Tap a picture to change it.</p>
+    <div id="plist">${S.players.map(p => `
+      <div class="card prow" data-p="${p.id}">
+        <button class="avb" data-av="${p.id}" aria-label="Change picture">${p.avatar}</button>
+        <input data-name="${p.id}" maxlength="14" placeholder="Name" value="${esc(p.name)}">
+        <button class="del" data-del="${p.id}" aria-label="Remove">✕</button>
+        <div class="opts">
+          <div class="chips">${Object.entries(LEVELS).map(([k, l]) => `<button class="chip ${p.level === k ? 'on' : ''}" data-lv="${p.id}" data-k="${k}">${l.label}</button>`).join('')}</div>
+          ${canSpeak ? `<button class="toggle ${p.read ? 'on' : ''}" data-read="${p.id}"><span class="sw"></span> Read questions out loud</button>` : ''}
+        </div>
+      </div>`).join('')}
+    </div>
+    <button class="big-btn alt" id="addBtn" ${S.players.length >= 8 ? 'disabled' : ''}>+ Add player</button>
+    <button class="big-btn" id="doneBtn">Done</button>
+    <p class="note">Names are kept on this device only.</p>`;
+  const syncNames = () => main.querySelectorAll('[data-name]').forEach(i => { playerById(i.dataset.name).name = i.value; });
+  main.querySelectorAll('[data-av]').forEach(b => b.onclick = () => {
+    const p = playerById(b.dataset.av); p.avatar = AVATARS[(AVATARS.indexOf(p.avatar) + 1) % AVATARS.length]; b.textContent = p.avatar; sfx.tap();
+  });
+  main.querySelectorAll('[data-lv]').forEach(b => b.onclick = () => {
+    syncNames(); const p = playerById(b.dataset.lv); p.level = b.dataset.k; if (p.level === 'k7') p.read = true; renderPlayers();
+  });
+  main.querySelectorAll('[data-read]').forEach(b => b.onclick = () => { const p = playerById(b.dataset.read); p.read = !p.read; b.classList.toggle('on', p.read); });
+  main.querySelectorAll('[data-del]').forEach(b => b.onclick = () => {
+    syncNames(); if (S.players.length <= 1) return;
+    S.players = S.players.filter(p => p.id !== b.dataset.del); renderPlayers();
+  });
+  $('addBtn').onclick = () => { syncNames(); S.players.push({ id: uid(), name: '', level: 'adult', avatar: pick(AVATARS), read: false }); renderPlayers(); };
+  $('doneBtn').onclick = () => { syncNames(); S.setupDone = true; save(); sfx.tap(); go(renderHome); };
+}
+
+function renderTopics() {
+  screen = 'topics';
+  const p = pickedPlayer;
+  setBar(nameOf(p), () => go(renderHome));
+  main.innerHTML = `
+    <h1>${p.avatar} Hi ${esc(nameOf(p))}!</h1>
+    <p class="sub">Pick a topic for 10 questions.</p>
+    <div class="chips">${Object.entries(LEVELS).map(([k, l]) => `<button class="chip ${pickedLevel === k ? 'on' : ''}" data-k="${k}">${l.label}${k === p.level ? ' ✓' : ''}</button>`).join('')}</div>
+    <div class="tgrid" style="margin-top:12px">${TOPICS.map(t => {
+      const b = S.best[`${p.id}|${t.id}|${pickedLevel}`] || 0;
+      return `<button class="card tcard" style="--c:${t.colour}" data-t="${t.id}"><div class="ic">${t.icon}</div><div class="nm">${t.name}</div><div class="st" style="color:${b ? '#f0a020' : '#c9c4ee'}">${starStr(b)}</div></button>`;
+    }).join('')}</div>`;
+  main.querySelectorAll('[data-k]').forEach(b => b.onclick = () => { pickedLevel = b.dataset.k; renderTopics(); });
+  main.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { initAudio(); startSolo(p, b.dataset.t, pickedLevel); });
+}
+
+// ---------- solo quiz ----------
+function startSolo(player, topic, level) {
+  const used = new Set(), list = [];
+  for (let i = 0; i < CONFIG.soloQuestions; i++) list.push(drawOne(topic, level, used));
+  Q = { mode: 'solo', player, topic, level, list, i: 0, score: 0, streak: 0, results: [], answered: false };
+  go(renderQuestion);
+}
+
+function currentQ() { return Q.mode === 'solo' ? Q.list[Q.i] : Q.q; }
+function currentPlayer() { return Q.mode === 'solo' ? Q.player : playerById(Q.order[Q.turn]); }
+function currentLevel() { return Q.mode === 'solo' ? Q.level : currentPlayer().level; }
+
+function renderQuestion() {
+  screen = 'question';
+  const q = currentQ(), p = currentPlayer(), t = topicById(q.topic), lv = LEVELS[currentLevel()];
+  S.seen[q.id] = Date.now(); save();
+  const header = Q.mode === 'solo'
+    ? `<div class="progress">${Q.list.map((_, i) => `<span class="dot ${i < Q.i ? (Q.results[i] ? 'ok' : 'no') : i === Q.i ? 'now' : ''}"></span>`).join('')}</div>`
+    : `<div class="tiny">Round ${Q.round + 1} of ${Q.per}</div>`;
+  main.innerHTML = `
+    <div class="qhead">
+      <div class="who"><span class="av">${p.avatar}</span>${esc(nameOf(p))}</div>
+      ${header}
+      <div>${Q.mode === 'solo' ? `<b>${Q.score}</b> / ${Q.list.length}` : `<b>${Q.scores[p.id]}</b> pts`}${Q.streak >= 3 && Q.mode === 'solo' ? ` <span class="streak">🔥 ${Q.streak}</span>` : ''}</div>
+    </div>
+    <div class="card qcard">
+      <div class="qmeta"><span class="badge" style="background:${t.colour}">${t.icon} ${t.name}</span><span class="badge" style="background:${lv.colour}">${lv.label}</span></div>
+      <div class="qtext">${esc(q.text)}</div>
+      ${canSpeak ? `<div class="readrow"><button class="readbtn" id="readBtn">🔊 Read it to me</button></div>` : ''}
+      <div class="answers">${q.options.map((o, i) => `<button class="ans" data-i="${i}"><span class="l">${'ABCD'[i]}</span><span>${esc(o)}</span></button>`).join('')}</div>
+      <div id="fb"></div>
+    </div>`;
+  const readAll = () => speak(`${q.text}. ${q.options.map((o, i) => `${'ABCD'[i]}: ${o}.`).join(' ')}`);
+  if ($('readBtn')) $('readBtn').onclick = () => { initAudio(); readAll(); };
+  main.querySelectorAll('.ans').forEach(b => b.onclick = () => answer(+b.dataset.i));
+  setBar(Q.mode === 'solo' ? `Question ${Q.i + 1} of ${Q.list.length}` : 'Family Battle',
+    () => showLeaveConfirm(Q.mode === 'solo' ? "Leave this quiz? This round won't be saved." : "Stop the battle? Scores won't be kept."));
+  Q.answered = false;
+  if (p.read) setTimeout(readAll, 250);
+}
+
+const YES = ['Correct!', 'Brilliant!', 'Spot on!', 'Yes!', 'Nailed it!', 'Superb!', 'Well done!'];
+function answer(i) {
+  if (Q.answered) return;
+  Q.answered = true; initAudio();
+  const q = currentQ(), p = currentPlayer(), ok = q.options[i] === q.correct;
+  main.querySelectorAll('.ans').forEach((b, j) => {
+    b.disabled = true;
+    if (q.options[j] === q.correct) b.classList.add('correct');
+    else if (j === i) b.classList.add('wrong');
+    else b.classList.add('dim');
+  });
+  if (Q.mode === 'solo') {
+    Q.results[Q.i] = ok;
+    if (ok) { Q.score++; Q.streak++; } else Q.streak = 0;
+  } else if (ok) Q.scores[p.id]++;
+  ok ? sfx.right() : sfx.wrong();
+  const head = ok ? `✅ ${pick(YES)}${Q.mode === 'solo' && Q.streak >= 3 ? ` 🔥 ${Q.streak} in a row!` : ''}` : `❌ Not quite. The answer is: ${esc(q.correct)}`;
+  const last = Q.mode === 'solo' ? Q.i === Q.list.length - 1 : (Q.turn === Q.order.length - 1 && Q.round === Q.per - 1);
+  $('fb').innerHTML = `
+    <div class="feedback ${ok ? 'good' : 'bad'}">
+      <div class="head">${head}</div>
+      ${q.fact ? `<div class="fact">💡 ${esc(q.fact)}</div>` : ''}
+    </div>
+    <button class="big-btn" id="nextBtn">${last ? 'See results' : 'Next →'}</button>`;
+  $('nextBtn').onclick = () => { sfx.tap(); next(); };
+  if (p.read) speak(`${ok ? 'Correct!' : 'Not quite. The answer is ' + q.correct + '.'} ${q.fact || ''}`);
+  setTimeout(() => $('fb').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+  // update header score
+  const scoreEl = main.querySelector('.qhead > div:last-child');
+  if (scoreEl) scoreEl.innerHTML = Q.mode === 'solo' ? `<b>${Q.score}</b> / ${Q.list.length}${Q.streak >= 3 ? ` <span class="streak">🔥 ${Q.streak}</span>` : ''}` : `<b>${Q.scores[p.id]}</b> pts`;
+}
+
+function next() {
+  stopSpeaking();
+  if (Q.mode === 'solo') {
+    Q.i++;
+    if (Q.i >= Q.list.length) go(renderResults); else go(renderQuestion);
+  } else {
+    Q.turn++;
+    if (Q.turn >= Q.order.length) { Q.turn = 0; Q.round++; }
+    if (Q.round >= Q.per) go(renderFamilyResults); else go(renderHandoff);
+  }
+}
+
+function renderResults() {
+  screen = 'results';
+  const { player: p, topic, level, score, list } = Q, t = topicById(topic);
+  const stars = starsFor(score, list.length), key = `${p.id}|${topic}|${level}`, prev = S.best[key] || 0;
+  if (stars > prev) S.best[key] = stars;
+  save();
+  const pct = score / list.length;
+  const msg = pct === 1 ? 'Perfect score! 🏆' : pct >= 0.8 ? 'Brilliant!' : pct >= 0.6 ? 'Great effort!' : pct >= 0.4 ? 'Good try. Keep going!' : 'Every quiz makes you smarter. Try again!';
+  const wrong = list.filter((_, i) => !Q.results[i]);
+  setBar('Results', () => go(renderHome));
+  main.innerHTML = `
+    <h1>${p.avatar} ${esc(nameOf(p))}</h1>
+    <p class="sub">${t.icon} ${t.name} · ${LEVELS[level].label}</p>
+    <div class="score-big">${score} / ${list.length}</div>
+    <div class="stars-big" style="color:#f0a020">${starStr(stars)}</div>
+    <div class="msg">${msg}</div>
+    ${stars > prev && prev > 0 ? `<p class="sub">New best for this topic! 🎉</p>` : ''}
+    <div class="btn-row">
+      <button class="big-btn" id="againBtn">Play again</button>
+      <button class="big-btn alt" id="topicsBtn">Choose a topic</button>
+    </div>
+    ${wrong.length ? `<h2>Let's learn from these</h2>${wrong.map(q => `<div class="card review"><div class="q">${esc(q.text)}</div><div class="a">✅ ${esc(q.correct)}</div>${q.fact ? `<div class="f">💡 ${esc(q.fact)}</div>` : ''}</div>`).join('')}` : ''}`;
+  $('againBtn').onclick = () => startSolo(p, topic, level);
+  $('topicsBtn').onclick = () => go(renderTopics);
+  sfx.done();
+  if (pct >= 0.8) confetti();
+  if (p.read) speak(`You got ${score} out of ${list.length}. ${msg}`);
+}
+
+// ---------- family battle ----------
+function renderFamilySetup() {
+  screen = 'famSetup';
+  const F = S.fam || (S.fam = { players: S.players.map(p => p.id), topic: 'mixed', per: 5 });
+  F.players = F.players.filter(id => playerById(id));
+  if (F.players.length < 2) F.players = S.players.map(p => p.id);
+  setBar('Family Battle', () => go(renderHome));
+  main.innerHTML = `
+    <h1>⚔️ Family Battle</h1>
+    <p class="sub">Take turns. Everyone gets questions at their own level.</p>
+    <div class="label">Who's playing?</div>
+    <div class="grid" style="margin-top:8px">${S.players.map(p => `
+      <button class="card pcard ${F.players.includes(p.id) ? 'sel' : 'off'}" data-fp="${p.id}">
+        <div class="av">${p.avatar}</div><div class="nm ${p.name.trim() ? '' : 'empty'}">${esc(nameOf(p))}</div>
+        <span class="badge" style="background:${LEVELS[p.level].colour}">${LEVELS[p.level].label}</span>
+      </button>`).join('')}</div>
+    <div class="label">Topic</div>
+    <div class="chips">${TOPICS.map(t => `<button class="chip ${F.topic === t.id ? 'on' : ''}" data-ft="${t.id}">${t.icon} ${t.name}</button>`).join('')}</div>
+    <div class="label">Questions each</div>
+    <div class="chips">${[3, 5, 10].map(n => `<button class="chip ${F.per === n ? 'on' : ''}" data-fn="${n}">${n}</button>`).join('')}</div>
+    <button class="big-btn fam" id="startFam" ${F.players.length < 2 ? 'disabled' : ''}>Start the battle!</button>
+    ${F.players.length < 2 ? '<p class="note">Pick at least two players.</p>' : ''}`;
+  main.querySelectorAll('[data-fp]').forEach(b => b.onclick = () => {
+    const id = b.dataset.fp; F.players = F.players.includes(id) ? F.players.filter(x => x !== id) : [...F.players, id]; renderFamilySetup();
+  });
+  main.querySelectorAll('[data-ft]').forEach(b => b.onclick = () => { F.topic = b.dataset.ft; renderFamilySetup(); });
+  main.querySelectorAll('[data-fn]').forEach(b => b.onclick = () => { F.per = +b.dataset.fn; renderFamilySetup(); });
+  $('startFam').onclick = () => { initAudio(); save(); startFamily(); };
+}
+function startFamily() {
+  const F = S.fam;
+  const order = S.players.map(p => p.id).filter(id => F.players.includes(id));
+  Q = { mode: 'family', order, topic: F.topic, per: F.per, round: 0, turn: 0, scores: Object.fromEntries(order.map(id => [id, 0])), used: new Set(), q: null };
+  go(renderHandoff);
+}
+function scoreboardHTML(nowId) {
+  return `<div class="scoreboard">${Q.order.map(id => { const p = playerById(id); return `<span class="sb ${id === nowId ? 'now' : ''}">${p.avatar} ${esc(nameOf(p))}: <b>${Q.scores[id]}</b></span>`; }).join('')}</div>`;
+}
+function renderHandoff() {
+  screen = 'handoff';
+  const p = currentPlayer(), t = topicById(Q.topic);
+  setBar('Family Battle', () => showLeaveConfirm("Stop the battle? Scores won't be kept."));
+  main.innerHTML = `
+    <div class="card handoff">
+      <div class="tiny">Round ${Q.round + 1} of ${Q.per} · ${t.icon} ${t.name}</div>
+      <p class="sub" style="margin:10px 0 0">Pass to…</p>
+      <div class="av">${p.avatar}</div>
+      <div class="nm">${esc(nameOf(p))}</div>
+      <span class="badge" style="background:${LEVELS[p.level].colour}">${LEVELS[p.level].label}</span>
+      <button class="big-btn" id="readyBtn" style="max-width:340px;margin:18px auto 0">I'm ready!</button>
+    </div>
+    ${scoreboardHTML(p.id)}`;
+  $('readyBtn').onclick = () => {
+    sfx.tap();
+    Q.q = drawOne(Q.topic, p.level, Q.used);
+    go(renderQuestion);
+  };
+}
+function showLeaveConfirm(text) {
+  stopSpeaking();
+  if ($('leaveBar')) return;
+  main.insertAdjacentHTML('afterbegin', `<div class="confirm" id="leaveBar"><span>${text}</span><span><button id="stayBtn" style="background:#fff">Keep playing</button> <button id="leaveBtn" style="background:#e5484d;color:#fff">Leave</button></span></div>`);
+  window.scrollTo(0, 0);
+  $('stayBtn').onclick = () => $('leaveBar').remove();
+  $('leaveBtn').onclick = () => { Q = null; go(renderHome); };
+}
+function renderFamilyResults() {
+  screen = 'famResults';
+  const ranked = Q.order.map(id => ({ p: playerById(id), s: Q.scores[id] })).sort((a, b) => b.s - a.s);
+  const top = ranked[0].s, winners = ranked.filter(r => r.s === top);
+  let place = 0, lastScore = null;
+  const medals = ['🥇', '🥈', '🥉'];
+  setBar('Battle results', () => go(renderHome));
+  main.innerHTML = `
+    <h1>${winners.length === 1 ? `🏆 ${esc(nameOf(winners[0].p))} wins!` : `🤝 It's a draw!`}</h1>
+    <p class="sub">${winners.length > 1 ? listNames(winners.map(w => esc(nameOf(w.p)))) + ' share the crown!' : `${top} out of ${Q.per} correct.`}</p>
+    <div class="podium">${ranked.map((r, i) => {
+      if (r.s !== lastScore) { place = i; lastScore = r.s; }
+      return `<div class="card prow2"><div class="pl">${medals[place] || (place + 1)}</div><div class="av">${r.p.avatar}</div><div class="nm">${esc(nameOf(r.p))} <span class="badge" style="background:${LEVELS[r.p.level].colour}">${LEVELS[r.p.level].label}</span></div><div class="sc">${r.s}/${Q.per}</div></div>`;
+    }).join('')}</div>
+    <div class="btn-row">
+      <button class="big-btn fam" id="againFam">Rematch!</button>
+      <button class="big-btn alt" id="setupFam">Change settings</button>
+    </div>`;
+  $('againFam').onclick = () => startFamily();
+  $('setupFam').onclick = () => go(renderFamilySetup);
+  sfx.done(); confetti();
+}
+
+const listNames = a => a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1];
+
+// ---------- confetti ----------
+let confettiRun = 0;
+function stopConfetti() { confettiRun++; const c = $('confetti'); c.getContext('2d').clearRect(0, 0, c.width, c.height); }
+function confetti() {
+  const run = ++confettiRun;
+  const c = $('confetti'), g = c.getContext('2d'), d = Math.min(window.devicePixelRatio || 1, 2);
+  c.width = innerWidth * d; c.height = innerHeight * d; g.setTransform(d, 0, 0, d, 0, 0);
+  const cols = ['#5b4bdb', '#ffd166', '#ff5c8a', '#1fa865', '#2f8fe0', '#ff8a4c'];
+  const bits = Array.from({ length: 140 }, () => ({ x: Math.random() * innerWidth, y: -20 - Math.random() * innerHeight * 0.5, vx: (Math.random() - 0.5) * 120, vy: 120 + Math.random() * 220, r: Math.random() * 6, vr: (Math.random() - 0.5) * 8, c: pick(cols), w: 6 + Math.random() * 6 }));
+  let last = performance.now(), t = 0;
+  (function step(now) {
+    if (run !== confettiRun) return;
+    const dt = Math.min(0.05, (now - last) / 1000); last = now; t += dt;
+    g.clearRect(0, 0, innerWidth, innerHeight);
+    for (const b of bits) { b.x += b.vx * dt; b.y += b.vy * dt; b.r += b.vr * dt; g.save(); g.translate(b.x, b.y); g.rotate(b.r); g.fillStyle = b.c; g.fillRect(-b.w / 2, -3, b.w, 6); g.restore(); }
+    if (t < 3.5) requestAnimationFrame(step); else g.clearRect(0, 0, innerWidth, innerHeight);
+  })(last);
+}
+
+// ---------- start ----------
+function showSound() { $('soundBtn').textContent = S.sound ? '🔊' : '🔇'; }
+$('soundBtn').onclick = () => { S.sound = !S.sound; if (!S.sound) stopSpeaking(); save(); showSound(); initAudio(); };
+showSound();
+if (canSpeak) { try { speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = () => {}; } catch (e) {} }
+document.addEventListener('visibilitychange', () => { if (document.hidden) { stopSpeaking(); save(); } });
+if (S.setupDone) renderHome(); else renderPlayers();
+
+try {
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+} catch (e) {}
+</script>
+</body>
+</html>

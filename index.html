@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Quiz Quest</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#5b4bdb">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --ink: #26215c; --accent: #5b4bdb; --accent-d: #3f31b0; --good: #1fa865; --bad: #e5484d; --line: #e4e1ff; }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; min-height: 100%; color: var(--ink); font-family: Fredoka, system-ui, sans-serif;
+    background: linear-gradient(160deg, #e6e9ff 0%, #fbefff 50%, #fff3e3 100%) fixed;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button { font-family: inherit; color: inherit; cursor: pointer; }
+  input { font-family: inherit; color: inherit; }
+  .hidden { display: none !important; }
+
+  #bar {
+    position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+    background: rgba(255,255,255,0.85); border-bottom: 2px solid var(--line);
+  }
+  #bar .title { flex: 1; font-weight: 700; font-size: 20px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .icon-btn { width: 42px; height: 42px; flex: none; border-radius: 50%; border: 2px solid var(--line); background: #fff; font-size: 19px; padding: 0; }
+  .icon-btn.ghost { visibility: hidden; }
+  main { max-width: 920px; margin: 0 auto; padding: 16px 14px 48px; }
+  h1 { font-size: clamp(26px, 5vw, 38px); margin: 6px 0 4px; text-align: center; }
+  h2 { font-size: 22px; margin: 18px 0 8px; }
+  .sub { text-align: center; opacity: 0.75; margin: 0 0 16px; font-size: 17px; }
+  .logo { text-align: center; font-size: clamp(34px, 7vw, 54px); font-weight: 700; margin: 4px 0 0; color: var(--accent);
+    text-shadow: 3px 3px 0 #ffd166; letter-spacing: 0.5px; }
+
+  .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .card { background: #fff; border-radius: 22px; box-shadow: 0 5px 0 rgba(60,50,150,0.12); border: 3px solid transparent; }
+  .pcard { padding: 14px 10px 12px; text-align: center; transition: transform 0.08s; }
+  .pcard:active, .tcard:active { transform: scale(0.97); }
+  .pcard .av { font-size: 54px; line-height: 1.1; }
+  .pcard .nm { font-weight: 700; font-size: 20px; margin: 4px 0; word-break: break-word; }
+  .pcard .nm.empty { opacity: 0.55; font-weight: 600; font-size: 16px; }
+  .pcard .stars { font-size: 14px; margin-top: 4px; opacity: 0.8; }
+  .pcard.sel { border-color: var(--accent); background: #f3f1ff; }
+  .pcard.off { opacity: 0.45; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-weight: 600; font-size: 13px; color: #fff; white-space: nowrap; }
+
+  .tgrid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+  .tcard { padding: 14px 12px; text-align: center; transition: transform 0.08s; border-bottom: 6px solid var(--c); }
+  .tcard .ic { font-size: 42px; }
+  .tcard .nm { font-weight: 700; font-size: 18px; margin-top: 2px; }
+  .tcard .st { font-size: 15px; margin-top: 2px; letter-spacing: 1px; }
+  .tcard.sel { border-color: var(--c); background: #faf9ff; }
+
+  .big-btn {
+    display: block; width: 100%; padding: 14px 16px; border-radius: 18px; border: none; font-size: 20px; font-weight: 700;
+    background: var(--accent); color: #fff; box-shadow: 0 5px 0 var(--accent-d); margin-top: 12px;
+  }
+  .big-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--accent-d); }
+  .big-btn.alt { background: #fff; color: var(--ink); box-shadow: 0 5px 0 #d9d5ff; border: 2px solid var(--line); }
+  .big-btn.fam { background: linear-gradient(90deg, #ff8a4c, #ff5c8a); box-shadow: 0 5px 0 #c9406a; }
+  .big-btn:disabled { opacity: 0.45; }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn-row > * { flex: 1 1 200px; }
+
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin: 8px 0; }
+  .chip { border: 2px solid #d9d5ff; background: #fff; border-radius: 999px; padding: 6px 13px; font-weight: 600; font-size: 15px; }
+  .chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .label { font-weight: 700; text-align: center; margin-top: 14px; }
+
+  /* players setup */
+  .prow { display: grid; grid-template-columns: 60px 1fr 42px; gap: 10px; align-items: center; padding: 12px; margin-bottom: 10px; }
+  .prow .avb { font-size: 38px; width: 60px; height: 60px; border-radius: 16px; border: 2px dashed #cfc9ff; background: #f7f6ff; padding: 0; }
+  .prow input { width: 100%; font-size: 19px; padding: 8px 12px; border-radius: 12px; border: 2px solid var(--line); }
+  .prow .chips { justify-content: flex-start; margin: 8px 0 0; }
+  .prow .chip { font-size: 13px; padding: 4px 10px; }
+  .prow .del { width: 42px; height: 42px; border-radius: 50%; border: 2px solid #ffd3d3; background: #fff; font-size: 16px; }
+  .prow .opts { grid-column: 2 / 4; }
+  .tiny { font-size: 13px; opacity: 0.7; }
+  .toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; margin-top: 8px; border: none; background: none; padding: 0; }
+  .toggle .sw { width: 38px; height: 22px; border-radius: 999px; background: #d9d5ff; position: relative; transition: background 0.15s; }
+  .toggle .sw::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: left 0.15s; }
+  .toggle.on .sw { background: var(--good); }
+  .toggle.on .sw::after { left: 19px; }
+
+  /* quiz */
+  .qhead { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .who { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 18px; }
+  .who .av { font-size: 30px; }
+  .progress { display: flex; gap: 5px; flex-wrap: wrap; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; background: #dcd8ff; }
+  .dot.ok { background: var(--good); } .dot.no { background: var(--bad); } .dot.now { background: var(--accent); transform: scale(1.3); }
+  .qcard { padding: 20px 18px 18px; text-align: center; }
+  .qmeta { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .qtext { font-size: clamp(22px, 4.2vw, 31px); font-weight: 600; line-height: 1.3; white-space: pre-line; overflow-wrap: anywhere; }
+  .readrow { display: flex; justify-content: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .readbtn { border: 2px solid var(--line); background: #f7f6ff; border-radius: 999px; padding: 5px 14px; font-weight: 600; font-size: 15px; }
+  .answers { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+  @media (max-width: 560px) { .answers { grid-template-columns: 1fr; } }
+  .ans {
+    display: flex; align-items: center; gap: 10px; text-align: left; background: #fff; border: 3px solid var(--line);
+    border-radius: 18px; padding: 10px 14px; font-size: clamp(17px, 2.8vw, 21px); font-weight: 600; min-height: 62px;
+    box-shadow: 0 4px 0 var(--line);
+  }
+  .ans .l { flex: none; width: 34px; height: 34px; border-radius: 50%; background: #efedff; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--accent); }
+  .ans:not(:disabled):active { transform: translateY(2px); }
+  .ans.correct { background: #e3f8ee; border-color: var(--good); box-shadow: 0 4px 0 #9fe0c0; }
+  .ans.correct .l { background: var(--good); color: #fff; }
+  .ans.wrong { background: #fde8e8; border-color: var(--bad); box-shadow: 0 4px 0 #f3b0b2; }
+  .ans.wrong .l { background: var(--bad); color: #fff; }
+  .ans.dim { opacity: 0.45; }
+  .feedback { margin-top: 14px; border-radius: 18px; padding: 12px 16px; text-align: left; animation: pop 0.25s ease-out; }
+  .feedback.good { background: #e3f8ee; } .feedback.bad { background: #fff1e6; }
+  .feedback .head { font-size: 21px; font-weight: 700; }
+  .feedback .fact { margin-top: 6px; font-size: 17px; line-height: 1.4; }
+  @keyframes pop { from { transform: scale(0.95); opacity: 0; } to { transform: none; opacity: 1; } }
+  .streak { font-weight: 700; color: #e8590c; }
+
+  .confirm { background: #fff7e0; border: 2px solid #ffd166; border-radius: 16px; padding: 10px 14px; margin-bottom: 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: space-between; }
+  .confirm button { border: none; border-radius: 999px; padding: 8px 16px; font-weight: 700; }
+
+  /* results */
+  .score-big { font-size: clamp(54px, 12vw, 84px); font-weight: 700; text-align: center; line-height: 1; margin-top: 8px; }
+  .stars-big { font-size: clamp(40px, 9vw, 58px); text-align: center; letter-spacing: 6px; }
+  .msg { text-align: center; font-size: 22px; font-weight: 600; margin: 6px 0 4px; }
+  .review { padding: 12px 16px; margin-top: 10px; }
+  .review .q { font-weight: 600; }
+  .review .a { color: var(--good); font-weight: 700; margin-top: 2px; }
+  .review .f { font-size: 15px; opacity: 0.8; margin-top: 2px; }
+
+  .handoff { text-align: center; padding: 28px 18px; }
+  .handoff .av { font-size: 96px; line-height: 1.1; }
+  .handoff .nm { font-size: clamp(30px, 7vw, 44px); font-weight: 700; }
+  .scoreboard { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 12px 0; }
+  .sb { background: #fff; border-radius: 14px; padding: 6px 12px; font-weight: 600; box-shadow: 0 3px 0 rgba(60,50,150,0.1); }
+  .sb.now { outline: 3px solid var(--accent); }
+  .podium { display: grid; gap: 10px; margin-top: 14px; }
+  .prow2 { display: flex; align-items: center; gap: 12px; padding: 12px 16px; }
+  .prow2 .pl { font-size: 30px; width: 44px; text-align: center; }
+  .prow2 .av { font-size: 36px; }
+  .prow2 .nm { flex: 1; font-weight: 700; font-size: 20px; }
+  .prow2 .sc { font-size: 24px; font-weight: 700; }
+  .note { font-size: 14px; opacity: 0.7; text-align: center; margin-top: 16px; line-height: 1.4; }
+  #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 50; }
+</style>
+</head>
+<body>
+<header id="bar">
+  <button class="icon-btn" id="backBtn" aria-label="Back">←</button>
+  <div class="title" id="barTitle">Quiz Quest</div>
+  <button class="icon-btn" id="soundBtn" aria-label="Sound">🔊</button>
+</header>
+<main id="main"></main>
+<canvas id="confetti"></canvas>
+
+<script>
+// =====================================================================
+//  QUESTIONS: each one is [question, right answer, wrong, wrong, wrong, fact]
+// =====================================================================
+const QB = {};
+// Each question: [question, correct answer, wrong 1, wrong 2, wrong 3, "did you know?" fact]
+QB.animals = {
+  k7: [
+    ["How many legs does a spider have? 🕷️", "8", "6", "10", "4", "Spiders have 8 legs. Insects, like ants and bees, have 6."],
+    ["What does a caterpillar turn into? 🐛", "A butterfly", "A bee", "A snail", "A frog", "A caterpillar wraps itself in a chrysalis and comes out as a butterfly!"],
+    ["What is the biggest animal alive today?", "Blue whale", "Elephant", "Giraffe", "Great white shark", "A blue whale can be as long as two or three buses!"],
+    ["What is a baby frog called? 🐸", "A tadpole", "A kitten", "A cub", "A foal", "Tadpoles live in water and slowly grow legs as they turn into frogs."],
+    ["Where do bees keep their honey? 🐝", "In a hive", "In a burrow", "In a pond", "In a shell", "Bees build their hive from wax and store honey in little six-sided cells."],
+    ["What do plants need from the Sun to grow? 🌱", "Light", "Snow", "Wind", "Sand", "Plants use sunlight to make their own food. Clever!"],
+    ["Which of these birds can fly?", "Owl", "Penguin", "Ostrich", "Emu", "Penguins, ostriches and emus are birds, but they can't fly. Penguins swim instead!"],
+    ["How many legs does an insect have? 🐜", "6", "8", "4", "10", "All insects have 6 legs and 3 body parts."],
+    ["Which animal has a long trunk? 🐘", "Elephant", "Lion", "Zebra", "Hippo", "An elephant uses its trunk to smell, drink and pick things up."],
+    ["What is a baby dog called? 🐶", "A puppy", "A calf", "A chick", "A lamb", "A baby cow is a calf, a baby hen is a chick, and a baby sheep is a lamb."],
+    ["Which animal carries its home on its back? 🐌", "Snail", "Rabbit", "Fox", "Robin", "A snail's shell grows with it, so it never needs to move house!"],
+    ["What do cows give us to drink? 🐄", "Milk", "Orange juice", "Lemonade", "Tea", "Milk is also used to make cheese, butter and yoghurt."],
+    ["Which animal can change its colour? 🦎", "Chameleon", "Hedgehog", "Squirrel", "Duck", "Chameleons change colour to show how they feel and to warm up or cool down."],
+    ["What covers a cat's body?", "Fur", "Feathers", "Scales", "A shell", "Birds have feathers, fish have scales, and cats have fur."],
+    ["Where does a fish live? 🐟", "In water", "In a tree", "Underground", "In the sky", "Fish breathe using gills, which take oxygen from the water."],
+  ],
+  k11: [
+    ["What is a group of lions called? 🦁", "A pride", "A pack", "A herd", "A flock", "Lions live in prides. Wolves live in packs, and cows move in herds."],
+    ["What do we call animals that eat only plants?", "Herbivores", "Carnivores", "Omnivores", "Predators", "Carnivores eat meat, and omnivores (like humans and bears) eat both."],
+    ["Which gas do plants take in from the air to make their food?", "Carbon dioxide", "Oxygen", "Helium", "Nitrogen", "Plants take in carbon dioxide and give out oxygen, which we need to breathe."],
+    ["How many hearts does an octopus have? 🐙", "3", "1", "2", "8", "Two hearts pump blood to the gills and one pumps it round the body. Their blood is blue!"],
+    ["Which is the fastest land animal?", "Cheetah", "Lion", "Horse", "Greyhound", "A cheetah can sprint at about 100 km/h (over 60 mph), but only for a short distance."],
+    ["What is it called when a caterpillar changes into a butterfly?", "Metamorphosis", "Photosynthesis", "Evaporation", "Hibernation", "Frogs go through metamorphosis too: egg, tadpole, frog."],
+    ["Which of these is a mammal?", "Dolphin", "Shark", "Salmon", "Octopus", "Dolphins breathe air and feed their babies milk, so they're mammals, not fish."],
+    ["What word describes animals that are active at night? 🦉", "Nocturnal", "Diurnal", "Migratory", "Dormant", "Owls, bats and badgers are nocturnal. Animals active in the day are diurnal."],
+    ["Which part of a plant takes in water from the soil?", "The roots", "The petals", "The leaves", "The pollen", "Roots also hold the plant firmly in the ground."],
+    ["What do bees collect from flowers to make honey?", "Nectar", "Sap", "Dew", "Seeds", "Nectar is a sugary liquid. Bees also carry pollen between flowers, which helps plants make seeds."],
+    ["Which is the largest bird in the world?", "Ostrich", "Golden eagle", "Albatross", "Emu", "Ostriches can be over 2.5 metres tall. They're too heavy to fly but can run very fast."],
+    ["What is it called when animals sleep through the winter?", "Hibernation", "Migration", "Camouflage", "Evolution", "Hedgehogs and dormice hibernate in the UK. Migration is when animals travel somewhere warmer."],
+    ["Which of these is NOT an insect?", "Spider", "Ant", "Beetle", "Butterfly", "Spiders are arachnids: they have 8 legs and 2 body parts."],
+    ["What is camouflage?", "Blending in with your surroundings", "Sleeping all winter", "Flying south for the winter", "Shedding old skin", "A stick insect looks just like a twig, so predators don't spot it."],
+    ["How do fish breathe?", "Using gills", "Using lungs", "Through their tails", "Through their fins", "Gills take in oxygen that is dissolved in the water."],
+  ],
+  k14: [
+    ["What word means the variety of living things in an area?", "Biodiversity", "Biomass", "Ecosystem", "Habitat", "Rainforests have huge biodiversity: millions of different species."],
+    ["In a food chain, what are green plants called?", "Producers", "Consumers", "Decomposers", "Predators", "Plants produce their own food using sunlight, so food chains start with them."],
+    ["Which pigment makes plants green?", "Chlorophyll", "Melanin", "Haemoglobin", "Keratin", "Chlorophyll absorbs light energy for photosynthesis. Melanin colours our skin and hair."],
+    ["Which scientist developed the theory of evolution by natural selection?", "Charles Darwin", "Isaac Newton", "Gregor Mendel", "Louis Pasteur", "Darwin published 'On the Origin of Species' in 1859."],
+    ["What was the name of the ship Charles Darwin sailed around the world on?", "HMS Beagle", "HMS Victory", "The Mayflower", "HMS Endeavour", "The voyage lasted almost five years (1831–1836) and visited the Galápagos Islands."],
+    ["What word describes a species that has completely died out?", "Extinct", "Endangered", "Dormant", "Invasive", "The dodo, from Mauritius, became extinct in the late 1600s."],
+    ["Which of these animals is an amphibian?", "Newt", "Lizard", "Tortoise", "Crocodile", "Amphibians, like newts and frogs, usually start life in water. The others are reptiles."],
+    ["What is the largest species of fish?", "Whale shark", "Great white shark", "Blue whale", "Manta ray", "Whale sharks can grow to around 18 metres but eat tiny plankton. Blue whales are mammals, not fish."],
+    ["What do decomposers like fungi and bacteria do?", "Break down dead material", "Make food from sunlight", "Hunt other animals", "Pollinate flowers", "They recycle nutrients back into the soil for plants to use."],
+    ["What word describes the natural environment an organism lives in?", "Habitat", "Population", "Species", "Community", "A population is a group of one species; a community is all the species living in a habitat."],
+    ["Which tree produces acorns?", "Oak", "Beech", "Ash", "Sycamore", "A single oak tree can support hundreds of species of insects."],
+    ["What process do plants use to lose water vapour through their leaves?", "Transpiration", "Respiration", "Condensation", "Germination", "Water evaporates from tiny holes in the leaves called stomata."],
+    ["What type of animal is a Komodo dragon?", "Lizard", "Snake", "Dinosaur", "Crocodile", "It's the largest living lizard, found on a few Indonesian islands."],
+    ["What do whales, bats and humans have in common?", "They're all mammals", "They're all reptiles", "They all lay eggs", "They're all fish", "Mammals are warm-blooded, have hair at some stage and feed their young milk."],
+    ["Which part of a flower makes pollen?", "The anther", "The stigma", "The petal", "The sepal", "The anther sits at the top of the stamen. The stigma is where pollen lands."],
+  ],
+  adult: [
+    ["What is the only mammal capable of true sustained flight?", "The bat", "The flying squirrel", "The sugar glider", "The colugo", "Flying squirrels, sugar gliders and colugos glide; only bats truly fly."],
+    ["Which bird lays an egg that can be about a fifth of its own body weight?", "Kiwi", "Ostrich", "Emu", "Albatross", "The kiwi's egg is one of the largest relative to body size of any bird."],
+    ["What is the collective noun for a group of crows?", "A murder", "A parliament", "A murmuration", "A crash", "Owls form a parliament, starlings a murmuration and rhinos a crash."],
+    ["Which trees include some of the oldest known living individual trees, nearly 5,000 years old?", "Bristlecone pines", "Giant sequoias", "Baobabs", "English yews", "A Great Basin bristlecone pine in California known as 'Methuselah' is about 4,800 years old."],
+    ["An axolotl is a type of what?", "Salamander", "Fish", "Lizard", "Frog", "Axolotls keep their larval features, like feathery external gills, throughout their lives."],
+    ["Which animal has the largest eyes in the animal kingdom?", "Colossal squid", "Blue whale", "Ostrich", "Tarsier", "Its eyes can be around 27 cm across, bigger than a football."],
+    ["What is the study of fungi called?", "Mycology", "Entomology", "Ornithology", "Herpetology", "Entomology is insects, ornithology is birds, and herpetology is reptiles and amphibians."],
+    ["How many living species of bear are there?", "8", "5", "12", "3", "Brown, polar, American black, Asiatic black, sun, sloth, spectacled and giant panda."],
+    ["What is the world's largest living rodent?", "Capybara", "Beaver", "Porcupine", "Coypu", "Capybaras live in South America and can weigh over 60 kg."],
+    ["Pando, one of the heaviest known organisms, is a clonal colony of which tree?", "Quaking aspen", "Coast redwood", "Silver birch", "English oak", "Pando, in Utah, is a single root system with around 47,000 stems."],
+    ["What does a dendrochronologist study?", "Tree rings", "Ancient teeth", "Cloud formations", "Rock layers", "Tree rings can date timber and reveal past climates."],
+    ["What is the largest living species of turtle?", "Leatherback sea turtle", "Green sea turtle", "Galápagos giant tortoise", "Alligator snapping turtle", "Leatherbacks can weigh over 500 kg and dive more than 1,000 metres deep."],
+    ["Tardigrades, tiny animals that can survive extreme conditions, are nicknamed what?", "Water bears", "Sea monkeys", "Sand fleas", "Water boatmen", "They can survive extreme cold, heat, radiation and even exposure to space."],
+    ["What is the offspring of a male donkey and a female horse called?", "A mule", "A hinny", "A zorse", "A liger", "A hinny is the reverse: a male horse and a female donkey."],
+    ["Which bird is famous for mimicking sounds, including chainsaws and camera shutters?", "Lyrebird", "Kookaburra", "Emu", "Cockatoo", "The superb lyrebird of Australia can copy almost any sound it hears."],
+  ],
+};
+
+QB.science = {
+  k7: [
+    ["What do we breathe in to stay alive?", "Air", "Water", "Juice", "Sand", "Air has oxygen in it, which our bodies need."],
+    ["What happens to ice when it gets warm? 🧊", "It melts", "It grows", "It turns into stone", "It gets colder", "Ice melts into water. If water gets very cold, it freezes into ice again."],
+    ["What will a magnet pick up? 🧲", "A metal paperclip", "A wooden spoon", "A plastic cup", "A rubber duck", "Magnets pull on some metals, like iron and steel."],
+    ["Which part of your body do you use to hear? 👂", "Ears", "Eyes", "Nose", "Elbows", "Our five senses are sight, hearing, smell, taste and touch."],
+    ["How many senses do we usually say people have?", "5", "3", "7", "10", "Sight, hearing, smell, taste and touch."],
+    ["What gives us light in the daytime? ☀️", "The Sun", "The Moon", "Street lights", "Clouds", "The Sun is a star: a giant ball of hot gas."],
+    ["What do we call water that falls from clouds? 🌧️", "Rain", "Steam", "Fog", "Sand", "Water rises as vapour, makes clouds, then falls as rain. That's the water cycle!"],
+    ["Which of these will float on water?", "A cork", "A stone", "A coin", "A key", "Things float if they are light for their size, like corks and wood."],
+    ["What does a thermometer measure? 🌡️", "How hot or cold something is", "How heavy something is", "How long something is", "How loud something is", "We measure temperature in degrees Celsius (°C)."],
+    ["What is the hardest part of your body?", "Your teeth", "Your fingernails", "Your hair", "Your ears", "The enamel on your teeth is even harder than bone!"],
+    ["What shape is a rainbow? 🌈", "A curve", "A square", "A triangle", "A zigzag", "Rainbows happen when sunlight shines through raindrops."],
+    ["What do we call a baby plant that has just grown from a seed? 🌱", "A seedling", "A flower", "A twig", "A leaf", "Seeds need water and warmth to start growing."],
+    ["What is a push or a pull called?", "A force", "A colour", "A sound", "A smell", "When you kick a ball, you use a force to make it move."],
+    ["Which material can you see through?", "Glass", "Wood", "Metal", "Brick", "Materials you can see through are called transparent."],
+    ["Where is your brain? 🧠", "In your head", "In your tummy", "In your foot", "In your hand", "Your brain is protected by your hard skull."],
+  ],
+  k11: [
+    ["What is H₂O?", "Water", "Salt", "Oxygen", "Sugar", "H₂O means two hydrogen atoms joined to one oxygen atom."],
+    ["What force pulls objects towards the Earth?", "Gravity", "Magnetism", "Friction", "Electricity", "Gravity is why things fall down, and why the Moon orbits the Earth."],
+    ["Which organ pumps blood around your body?", "Heart", "Lungs", "Liver", "Kidneys", "Your heart beats around 100,000 times a day."],
+    ["What are the three states of matter?", "Solid, liquid and gas", "Hot, warm and cold", "Rock, water and air", "Ice, steam and fire", "Water can be all three: ice, water and steam."],
+    ["At what temperature does water boil at sea level?", "100°C", "50°C", "0°C", "212°C", "Water freezes at 0°C. (212 is the boiling point in Fahrenheit!)"],
+    ["What type of energy does a moving object have?", "Kinetic energy", "Potential energy", "Chemical energy", "Nuclear energy", "The faster something moves, the more kinetic energy it has."],
+    ["What do we call materials that let electricity flow through them easily?", "Conductors", "Insulators", "Magnets", "Batteries", "Metals like copper are good conductors. Plastic and rubber are insulators."],
+    ["Which part of the eye gets bigger or smaller to let in more or less light?", "The pupil", "The lens", "The retina", "The eyelash", "The coloured iris changes the size of the pupil."],
+    ["What is the largest organ of the human body?", "Skin", "Liver", "Brain", "Heart", "Skin protects you, helps control your temperature and lets you feel touch."],
+    ["Which scientist is famous for the story of an apple and gravity? 🍎", "Isaac Newton", "Albert Einstein", "Charles Darwin", "Marie Curie", "Newton said watching an apple fall helped him think about gravity."],
+    ["What gas do we breathe out that plants use?", "Carbon dioxide", "Oxygen", "Helium", "Hydrogen", "We breathe in oxygen and breathe out carbon dioxide."],
+    ["How many bones are there in an adult human body?", "206", "106", "306", "26", "Babies are born with around 300 bones; some join together as they grow."],
+    ["How does sound travel?", "As vibrations", "As light", "As electricity", "As magnetism", "Sound can't travel through space, because there's nothing there to vibrate."],
+    ["When sugar dissolves completely in water, what is the mixture called?", "A solution", "A suspension", "A sediment", "A solid", "The water is the solvent and the sugar is the solute."],
+    ["What is it called when a liquid turns into a gas?", "Evaporation", "Condensation", "Freezing", "Melting", "Condensation is the opposite: a gas turning back into a liquid."],
+  ],
+  k14: [
+    ["What is the chemical symbol for gold?", "Au", "Ag", "Gd", "Go", "Au comes from the Latin 'aurum'. Ag (argentum) is silver."],
+    ["Which part of a cell releases energy through respiration?", "Mitochondria", "Nucleus", "Ribosome", "Cell wall", "Mitochondria are often called the 'powerhouse of the cell'."],
+    ["Roughly how fast does light travel?", "300,000 km per second", "300,000 km per hour", "3,000 km per second", "30 km per second", "Light could travel around the Earth about 7.5 times in one second."],
+    ["Which subatomic particle has a negative charge?", "Electron", "Proton", "Neutron", "Nucleus", "Protons are positive and neutrons have no charge."],
+    ["What does Newton's first law of motion say?", "An object stays still or keeps moving unless a force acts on it", "Force equals mass times acceleration", "Every action has an equal and opposite reaction", "What goes up must come down", "This is also called the law of inertia."],
+    ["What is the pH of pure water?", "7", "0", "1", "14", "pH 7 is neutral. Below 7 is acidic and above 7 is alkaline."],
+    ["Which blood cells help fight infection?", "White blood cells", "Red blood cells", "Platelets", "Plasma", "Red blood cells carry oxygen; platelets help blood to clot."],
+    ["What is electrical resistance measured in?", "Ohms", "Volts", "Amps", "Watts", "V = I × R: voltage equals current times resistance."],
+    ["Which gas makes up most of Earth's atmosphere?", "Nitrogen", "Oxygen", "Carbon dioxide", "Argon", "Air is about 78% nitrogen and 21% oxygen."],
+    ["What does DNA stand for?", "Deoxyribonucleic acid", "Dinitrogen acid", "Deoxyribose nitrogen acid", "Dynamic nucleic acid", "DNA carries the genetic instructions for living things."],
+    ["What is the formula for speed?", "Distance ÷ time", "Time ÷ distance", "Distance × time", "Mass × acceleration", "Mass × acceleration is the formula for force."],
+    ["Which element has the atomic number 1?", "Hydrogen", "Helium", "Oxygen", "Carbon", "Hydrogen is the lightest and most common element in the universe."],
+    ["What type of chemical bond involves atoms sharing electrons?", "Covalent", "Ionic", "Metallic", "Magnetic", "In ionic bonds, electrons are transferred rather than shared."],
+    ["What process do cells use to release energy from glucose?", "Respiration", "Photosynthesis", "Digestion", "Osmosis", "Aerobic respiration: glucose + oxygen → carbon dioxide + water, releasing energy."],
+    ["Which scientist proposed the three laws of motion?", "Isaac Newton", "Albert Einstein", "Galileo Galilei", "Michael Faraday", "Newton published them in 1687 in his book 'Principia'."],
+  ],
+  adult: [
+    ["What is the most abundant element in the universe?", "Hydrogen", "Helium", "Oxygen", "Carbon", "Hydrogen makes up about three-quarters of all normal matter by mass."],
+    ["What is the chemical symbol for tungsten?", "W", "Tu", "Tg", "Tn", "W comes from 'wolfram', its other name."],
+    ["Absolute zero is approximately what temperature?", "−273.15 °C", "−100 °C", "−459.67 °C", "−373.15 °C", "−459.67 is absolute zero in Fahrenheit: a cunning trap!"],
+    ["Who discovered penicillin in 1928?", "Alexander Fleming", "Louis Pasteur", "Joseph Lister", "Edward Jenner", "Fleming noticed mould killing bacteria on a petri dish he'd left out."],
+    ["Which of these is NOT a noble gas?", "Nitrogen", "Neon", "Argon", "Krypton", "The noble gases include helium, neon, argon, krypton, xenon and radon."],
+    ["In E = mc², what does the 'c' stand for?", "The speed of light", "The gravitational constant", "Electric charge", "Calories", "Because c² is so huge, a tiny mass holds an enormous amount of energy."],
+    ["In which part of a plant cell does photosynthesis take place?", "Chloroplast", "Mitochondrion", "Nucleus", "Vacuole", "Chloroplasts contain chlorophyll, which captures light energy."],
+    ["What is the SI unit of force?", "Newton", "Joule", "Pascal", "Watt", "Joules measure energy, pascals pressure and watts power."],
+    ["Which vitamin does your skin make when exposed to sunlight?", "Vitamin D", "Vitamin C", "Vitamin B12", "Vitamin A", "Vitamin D helps the body absorb calcium for healthy bones."],
+    ["Who published the first widely recognised periodic table in 1869?", "Dmitri Mendeleev", "Marie Curie", "John Dalton", "Antoine Lavoisier", "He left gaps for elements not yet discovered and predicted their properties."],
+    ["Which type of electromagnetic radiation has the shortest wavelength?", "Gamma rays", "X-rays", "Ultraviolet", "Radio waves", "Radio waves have the longest wavelengths; gamma rays the shortest."],
+    ["Which blood type is known as the universal donor for red cells?", "O negative", "AB positive", "A negative", "B positive", "AB positive is the universal recipient."],
+    ["Rosalind Franklin's X-ray images were crucial to discovering the structure of what?", "DNA", "Penicillin", "Insulin", "The atom", "Her 'Photo 51' helped reveal DNA's double helix in 1953."],
+    ["What is a radioactive isotope's half-life?", "The time for half its atoms to decay", "Half the time it takes to melt", "The time for it to lose half its electrons", "Half its total lifespan in a reactor", "Carbon-14's half-life of about 5,730 years makes it useful for dating ancient remains."],
+    ["What is the hardest naturally occurring mineral?", "Diamond", "Quartz", "Topaz", "Corundum", "Diamond is 10 on the Mohs scale; corundum (rubies and sapphires) is 9."],
+  ],
+};
+
+QB.geography = {
+  k7: [
+    ["What is the capital city of England? 🏙️", "London", "Manchester", "Paris", "Cardiff", "London is also the capital of the whole United Kingdom."],
+    ["Which is the biggest ocean? 🌊", "The Pacific Ocean", "The Atlantic Ocean", "The Indian Ocean", "The Arctic Ocean", "The Pacific is so big that all the land on Earth could fit inside it!"],
+    ["What do we call a very big hill with a pointy top? ⛰️", "A mountain", "A valley", "A river", "A beach", "The tallest mountain in the world is Mount Everest."],
+    ["Which country do kangaroos come from? 🦘", "Australia", "Canada", "France", "Egypt", "Kangaroos carry their babies, called joeys, in a pouch."],
+    ["What do we call land with water all around it? 🏝️", "An island", "A desert", "A forest", "A city", "Great Britain is an island!"],
+    ["Where do most penguins live in the wild? 🐧", "In the cold south, like Antarctica", "At the North Pole", "In the Sahara Desert", "In the Amazon jungle", "No penguins live at the North Pole. Polar bears do!"],
+    ["What is a desert?", "A very dry place with little rain", "A very wet forest", "A frozen sea", "A big lake", "Deserts can be hot like the Sahara, or cold like Antarctica!"],
+    ["How many continents are there?", "7", "5", "3", "10", "Africa, Antarctica, Asia, Australia (Oceania), Europe, North America and South America."],
+    ["What colour is water usually shown as on a map? 🗺️", "Blue", "Red", "Yellow", "Brown", "Maps use blue for seas, lakes and rivers, and green for parks and woods."],
+    ["Which country is the Eiffel Tower in? 🗼", "France", "Spain", "Italy", "Germany", "The Eiffel Tower is in Paris, the capital of France."],
+    ["Which way does a compass needle point? 🧭", "North", "South", "Up", "Down", "Compasses help people find their way."],
+    ["What is the weather like at the North Pole? ❄️", "Very cold", "Very hot", "Hot and sandy", "Warm and rainy", "The North Pole is covered in frozen sea ice."],
+    ["What do we call a drawing of a place from above that shows roads and towns?", "A map", "A calendar", "A clock", "A poster", "Maps help us find our way around."],
+    ["Which of these is a country in the United Kingdom?", "Scotland", "France", "Spain", "Norway", "The UK is made of England, Scotland, Wales and Northern Ireland."],
+    ["Which animal lives in the icy Arctic? ❄️", "Polar bear", "Lion", "Camel", "Monkey", "Polar bears have thick fur and a layer of fat to keep warm."],
+  ],
+  k11: [
+    ["What is the capital of France?", "Paris", "Lyon", "Marseille", "Nice", "Paris is on the River Seine."],
+    ["Which river flows through London?", "The Thames", "The Severn", "The Mersey", "The Tyne", "The Mersey flows through Liverpool, and the Tyne through Newcastle."],
+    ["What is the largest continent?", "Asia", "Africa", "Europe", "North America", "Asia covers about 30% of Earth's land."],
+    ["What is the tallest mountain in the world (above sea level)?", "Mount Everest", "K2", "Kilimanjaro", "Ben Nevis", "Everest is about 8,849 metres tall, on the border of Nepal and China."],
+    ["What is the highest mountain in the UK?", "Ben Nevis", "Snowdon (Yr Wyddfa)", "Scafell Pike", "Helvellyn", "Ben Nevis, in Scotland, is 1,345 metres tall."],
+    ["Which imaginary line divides the Earth into Northern and Southern Hemispheres?", "The Equator", "The Prime Meridian", "The Tropic of Cancer", "The Arctic Circle", "Countries near the Equator are usually hot all year round."],
+    ["What is the capital of Scotland?", "Edinburgh", "Glasgow", "Aberdeen", "Dundee", "Glasgow is Scotland's biggest city, but Edinburgh is the capital."],
+    ["What is the largest hot desert in the world?", "The Sahara", "The Gobi", "The Kalahari", "The Arabian Desert", "The Sahara covers much of North Africa. The largest desert overall is Antarctica!"],
+    ["Which continent is Egypt mostly in?", "Africa", "Asia", "Europe", "South America", "Most of Egypt is in north-east Africa; its Sinai Peninsula is in Asia."],
+    ["Which four countries make up the United Kingdom?", "England, Scotland, Wales and Northern Ireland", "England, Scotland, Wales and Ireland", "England, France, Wales and Scotland", "England, Scotland, Wales and the Isle of Man", "The Isle of Man is a Crown Dependency, not part of the UK."],
+    ["Which ocean lies between Europe and North America?", "The Atlantic", "The Pacific", "The Indian", "The Southern", "The Titanic sank in the North Atlantic in 1912."],
+    ["What do we call a scientist who studies volcanoes? 🌋", "A volcanologist", "A meteorologist", "An archaeologist", "An astronomer", "Meteorologists study weather; archaeologists study the human past."],
+    ["What is the capital of Wales?", "Cardiff", "Swansea", "Newport", "Bangor", "Cardiff became the capital of Wales in 1955."],
+    ["Which country is shaped like a boot?", "Italy", "Greece", "Spain", "Portugal", "The island of Sicily sits just off the 'toe' of the boot."],
+    ["On a map, what is a line joining places of the same height called?", "A contour line", "A grid line", "A border", "A scale bar", "Contour lines close together mean steep ground."],
+  ],
+  k14: [
+    ["What is the capital of Australia?", "Canberra", "Sydney", "Melbourne", "Perth", "Canberra was purpose-built as a compromise between Sydney and Melbourne."],
+    ["What is the capital of Canada?", "Ottawa", "Toronto", "Vancouver", "Montreal", "Toronto is Canada's largest city."],
+    ["What is the smallest country in the world by area?", "Vatican City", "Monaco", "San Marino", "Malta", "Vatican City is less than half a square kilometre."],
+    ["Which mountain range is traditionally seen as the boundary between Europe and Asia?", "The Urals", "The Alps", "The Himalayas", "The Pyrenees", "The Urals run north to south through Russia."],
+    ["What type of rock forms when lava or magma cools?", "Igneous", "Sedimentary", "Metamorphic", "Limestone", "Granite and basalt are igneous rocks. Limestone is sedimentary."],
+    ["Which country is thought to have more lakes than any other?", "Canada", "Russia", "The USA", "Finland", "Canada is often said to have more lakes than the rest of the world combined."],
+    ["The Amazon rainforest is mostly in which country?", "Brazil", "Peru", "Colombia", "Argentina", "About 60% of the Amazon rainforest is in Brazil."],
+    ["What is the line of 0° longitude called?", "The Prime Meridian", "The Equator", "The International Date Line", "The Tropic of Capricorn", "It passes through Greenwich in London."],
+    ["What is the capital of Japan?", "Tokyo", "Kyoto", "Osaka", "Seoul", "Kyoto was Japan's capital for over 1,000 years. Seoul is the capital of South Korea."],
+    ["Which continent has the most countries?", "Africa", "Europe", "Asia", "South America", "Africa has 54 countries recognised by the United Nations."],
+    ["What mainly causes the ocean's tides?", "The Moon's gravity", "The wind", "Earth's core", "Underwater volcanoes", "The Sun's gravity has an effect too, causing extra-high 'spring tides'."],
+    ["Which is the largest US state by area?", "Alaska", "Texas", "California", "Montana", "Alaska is more than twice the size of Texas."],
+    ["What is the layer of gases surrounding the Earth called?", "The atmosphere", "The lithosphere", "The hydrosphere", "The crust", "The lithosphere is the rocky outer layer; the hydrosphere is all of Earth's water."],
+    ["Which river flows through Cairo?", "The Nile", "The Congo", "The Niger", "The Zambezi", "The Nile flows north into the Mediterranean Sea."],
+    ["What is the currency of Japan?", "Yen", "Yuan", "Won", "Ringgit", "The yuan is used in China, the won in South Korea and the ringgit in Malaysia."],
+  ],
+  adult: [
+    ["What is the capital of New Zealand?", "Wellington", "Auckland", "Christchurch", "Queenstown", "Wellington is often called the southernmost capital city of a sovereign state."],
+    ["Which country has the longest coastline in the world?", "Canada", "Norway", "Russia", "Australia", "Canada's coastline is over 200,000 km long."],
+    ["Lake Baikal, the world's deepest lake, is in which country?", "Russia", "Mongolia", "Kazakhstan", "China", "It holds roughly a fifth of the world's unfrozen fresh surface water."],
+    ["Which country was formerly known as Abyssinia?", "Ethiopia", "Eritrea", "Sudan", "Somalia", "Ethiopia was never fully colonised, apart from an Italian occupation from 1936 to 1941."],
+    ["What is the capital of Turkey?", "Ankara", "Istanbul", "Izmir", "Antalya", "Istanbul is the largest city, but Ankara has been the capital since 1923."],
+    ["Cape Agulhas, where the Atlantic and Indian Oceans are said to meet, is in which country?", "South Africa", "Namibia", "Mozambique", "Madagascar", "It's the southernmost point of the African continent."],
+    ["Which of these capital cities stands on the River Danube?", "Budapest", "Prague", "Warsaw", "Bucharest", "Vienna, Bratislava, Budapest and Belgrade all sit on the Danube."],
+    ["The Atacama, one of the driest places on Earth, is mainly in which country?", "Chile", "Peru", "Mexico", "Argentina", "Some weather stations there have never recorded rain."],
+    ["Mount Kilimanjaro is in which country?", "Tanzania", "Kenya", "Uganda", "Ethiopia", "At 5,895 m it's Africa's highest mountain."],
+    ["Which strait separates Europe from Africa?", "The Strait of Gibraltar", "The Bosporus", "The Strait of Dover", "The Strait of Hormuz", "At its narrowest it's only about 14 km wide."],
+    ["What is the largest island in the world (not counting continents)?", "Greenland", "New Guinea", "Borneo", "Madagascar", "Greenland is about 2.2 million km², mostly covered by an ice sheet."],
+    ["Counting its overseas territories, which country spans the most time zones?", "France", "Russia", "The USA", "The United Kingdom", "France spans 12 time zones thanks to territories like French Polynesia and Réunion."],
+    ["Which is the northernmost city in the UK?", "Inverness", "Aberdeen", "Dundee", "Perth", "Inverness was granted city status in 2000."],
+    ["What is the longest river in Europe?", "The Volga", "The Danube", "The Rhine", "The Dnieper", "The Volga flows about 3,500 km through Russia into the Caspian Sea."],
+    ["What was the name of the supercontinent that existed about 300 million years ago?", "Pangaea", "Gondwana", "Laurasia", "Atlantis", "Pangaea later split into Laurasia in the north and Gondwana in the south."],
+  ],
+};
+
+QB.history = {
+  k7: [
+    ["Who lived in castles long ago? 🏰", "Kings and queens", "Astronauts", "Footballers", "Pop stars", "Castles had thick walls to keep the people inside safe."],
+    ["What did people use for light before electricity? 🕯️", "Candles", "Mobile phones", "Light bulbs", "Torches with batteries", "People also used oil lamps and gas lights."],
+    ["Which giant animals lived millions of years ago and are now extinct? 🦕", "Dinosaurs", "Elephants", "Whales", "Horses", "We know about dinosaurs from their fossils."],
+    ["Who was the first person to walk on the Moon? 🌙", "Neil Armstrong", "Christopher Columbus", "Isaac Newton", "Tim Peake", "Neil Armstrong stepped onto the Moon in 1969."],
+    ["What did the ancient Egyptians build as tombs for their kings?", "Pyramids", "Skyscrapers", "Igloos", "Castles", "The Great Pyramid of Giza is over 4,500 years old!"],
+    ["Before cars, how did people usually travel on land?", "On horses", "In aeroplanes", "In rockets", "On scooters", "Horses pulled carts and carriages too."],
+    ["What did knights wear to protect themselves in battle? 🛡️", "Armour", "Pyjamas", "Raincoats", "Swimming costumes", "Metal armour was very heavy!"],
+    ["How did the Great Fire of London start in 1666? 🔥", "In a bakery", "From lightning", "From a volcano", "From fireworks", "It started in a bakery on Pudding Lane and burned for four days."],
+    ["Which nurse was called 'The Lady with the Lamp'?", "Florence Nightingale", "Mary Seacole", "Queen Victoria", "Grace Darling", "She checked on wounded soldiers at night, carrying a lamp."],
+    ["What did the Vikings sail in? ⛵", "Longships", "Trains", "Hot-air balloons", "Submarines", "Viking longships could sail on the sea and up rivers."],
+    ["What did the Romans build all over Britain?", "Straight roads", "Railways", "Airports", "Skyscrapers", "Some modern roads still follow the old Roman routes."],
+    ["What did people use to tell the time before clocks? ☀️", "Sundials", "Phones", "TVs", "Microwaves", "A sundial uses the shadow from the Sun to show the time."],
+    ["Who flew the first powered aeroplane in 1903? ✈️", "The Wright brothers", "Neil Armstrong", "Florence Nightingale", "Isaac Newton", "Their first flight lasted just 12 seconds!"],
+    ["Which age is named after the tools early people made from stone?", "The Stone Age", "The Space Age", "The Victorian Age", "The Ice Cream Age", "After the Stone Age came the Bronze Age and the Iron Age."],
+    ["Long ago, children learned to write on small boards called what?", "Slates", "Phones", "Laptops", "Whiteboards", "They wrote on the slates with chalk and wiped them clean."],
+  ],
+  k11: [
+    ["In which year did the Second World War end?", "1945", "1918", "1939", "1966", "The war began in 1939 and ended in 1945."],
+    ["Who was the first woman to be UK Prime Minister?", "Margaret Thatcher", "Theresa May", "Queen Victoria", "Liz Truss", "Margaret Thatcher became Prime Minister in 1979."],
+    ["Who built Hadrian's Wall?", "The Romans", "The Vikings", "The Normans", "The Egyptians", "It was built from around AD 122, across northern England."],
+    ["Which battle did William the Conqueror win in 1066?", "The Battle of Hastings", "The Battle of Waterloo", "The Battle of Trafalgar", "The Battle of Bosworth", "The Normans then ruled England. The story is shown in the Bayeux Tapestry."],
+    ["Which Tudor king had six wives?", "Henry VIII", "Henry VII", "Edward VI", "Richard III", "A rhyme helps remember what happened to them: divorced, beheaded, died, divorced, beheaded, survived."],
+    ["Which ancient people wrote using hieroglyphics?", "The Ancient Egyptians", "The Ancient Greeks", "The Romans", "The Vikings", "Hieroglyphics used pictures and symbols for sounds and ideas."],
+    ["Which queen reigned for 63 years in the 1800s?", "Queen Victoria", "Elizabeth I", "Queen Anne", "Mary I", "Her reign (1837–1901) is called the Victorian era."],
+    ["Which ship sank in 1912 after hitting an iceberg?", "Titanic", "Mary Rose", "Cutty Sark", "Golden Hind", "The Titanic was on its first voyage, from Southampton to New York."],
+    ["Where were the ancient Olympic Games held?", "Olympia", "Rome", "Sparta", "Troy", "They are traditionally dated to 776 BC and honoured the god Zeus."],
+    ["Who is credited with inventing the telephone in 1876?", "Alexander Graham Bell", "Thomas Edison", "Isaac Newton", "John Logie Baird", "John Logie Baird demonstrated an early television in 1926."],
+    ["What did the Romans call Britain?", "Britannia", "Gallia", "Hispania", "Caledonia", "Caledonia was their name for Scotland, and Gallia was France."],
+    ["In which city did Anne Frank and her family hide during the Second World War?", "Amsterdam", "Berlin", "Paris", "Vienna", "Her diary, written in hiding, became one of the most famous books in the world."],
+    ["In which year did the Great Fire of London happen?", "1666", "1066", "1566", "1766", "It destroyed over 13,000 houses, but very few deaths were recorded."],
+    ["Who led the suffragettes in their campaign for women's votes?", "Emmeline Pankhurst", "Florence Nightingale", "Rosa Parks", "Marie Curie", "Emmeline Pankhurst was born in Manchester in 1858!"],
+    ["Which Anglo-Saxon king is known as 'the Great'?", "Alfred", "Harold", "Canute", "Edward", "Alfred the Great defended Wessex against Viking invasions."],
+  ],
+  k14: [
+    ["In which year did the First World War begin?", "1914", "1918", "1939", "1905", "It lasted until 1918."],
+    ["Who was the British Prime Minister for most of the Second World War?", "Winston Churchill", "Neville Chamberlain", "Clement Attlee", "David Lloyd George", "Churchill took over from Chamberlain in May 1940."],
+    ["Which document, sealed in 1215, limited the power of the English king?", "Magna Carta", "The Bill of Rights", "The Domesday Book", "The Act of Union", "King John agreed to it at Runnymede, near Windsor."],
+    ["Which revolution began in 1789?", "The French Revolution", "The American Revolution", "The Russian Revolution", "The Glorious Revolution", "It began with the storming of the Bastille on 14 July 1789."],
+    ["Who was the first Roman emperor?", "Augustus", "Julius Caesar", "Nero", "Caligula", "Julius Caesar was dictator but never emperor; his heir Octavian became Augustus in 27 BC."],
+    ["In which year did the Berlin Wall fall?", "1989", "1961", "1991", "1979", "It had divided East and West Berlin since 1961."],
+    ["Which country did the UK fight in the 1982 Falklands War?", "Argentina", "Chile", "Spain", "Brazil", "The conflict lasted about ten weeks."],
+    ["In which country did the Industrial Revolution begin?", "Britain", "Germany", "The USA", "France", "Manchester was one of the world's first industrial cities, famous for its cotton mills."],
+    ["Who gave the famous 'I Have a Dream' speech in 1963?", "Martin Luther King Jr", "Malcolm X", "Nelson Mandela", "Barack Obama", "He spoke to about 250,000 people in Washington, D.C."],
+    ["Nelson Mandela became president of which country in 1994?", "South Africa", "Kenya", "Zimbabwe", "Nigeria", "He had spent 27 years in prison before being released in 1990."],
+    ["What was the period of tension between the USA and the USSR after 1945 called?", "The Cold War", "The Hundred Years' War", "The Great War", "The Space War", "It's called 'cold' because the two superpowers never fought each other directly."],
+    ["Which king ordered the Domesday Book survey in 1085?", "William the Conqueror", "Henry VIII", "Alfred the Great", "Richard the Lionheart", "It recorded who owned land and property across much of England."],
+    ["Who was finally defeated at the Battle of Waterloo in 1815?", "Napoleon Bonaparte", "Louis XIV", "The Duke of Wellington", "Admiral Nelson", "Wellington led the British-allied army that defeated him."],
+    ["Which of the Seven Wonders of the Ancient World is still standing?", "The Great Pyramid of Giza", "The Hanging Gardens of Babylon", "The Colossus of Rhodes", "The Lighthouse of Alexandria", "It's the oldest of the seven, and the only one left."],
+    ["In which year did humans first land on the Moon?", "1969", "1959", "1979", "1989", "Apollo 11's Neil Armstrong and Buzz Aldrin landed on 20 July 1969."],
+  ],
+  adult: [
+    ["Who was the last Tudor monarch?", "Elizabeth I", "Mary I", "Edward VI", "James I", "After she died in 1603, James VI of Scotland became James I of England."],
+    ["The Treaty of Versailles formally ended which war?", "The First World War", "The Second World War", "The Napoleonic Wars", "The Crimean War", "It was signed in 1919 at the Palace of Versailles."],
+    ["In which year was the Battle of Bosworth Field, which ended the Wars of the Roses?", "1485", "1415", "1066", "1588", "Henry Tudor defeated Richard III and became Henry VII."],
+    ["Suleiman the Magnificent ruled which empire?", "The Ottoman Empire", "The Mughal Empire", "The Byzantine Empire", "The Persian Empire", "He ruled from 1520 to 1566, the empire's golden age."],
+    ["Who is generally regarded as Britain's first Prime Minister?", "Sir Robert Walpole", "William Pitt the Younger", "Benjamin Disraeli", "The Duke of Wellington", "He led the government from 1721 to 1742."],
+    ["Which civilisation built Machu Picchu?", "The Inca", "The Aztecs", "The Maya", "The Olmecs", "It was built in the 15th century, high in the Andes of Peru."],
+    ["In which year did the Acts of Union unite England and Scotland as Great Britain?", "1707", "1603", "1801", "1688", "1603 was the Union of the Crowns; 1801 added Ireland."],
+    ["Wat Tyler was a leader of which 1381 uprising?", "The Peasants' Revolt", "The Gunpowder Plot", "The Jacobite Rising", "The Pilgrimage of Grace", "It was sparked partly by a poll tax."],
+    ["Which explorer led the first expedition to sail around the world, though he died during the voyage?", "Ferdinand Magellan", "Francis Drake", "Vasco da Gama", "Christopher Columbus", "Juan Sebastián Elcano completed the voyage in 1522."],
+    ["Howard Carter discovered whose tomb in 1922?", "Tutankhamun", "Ramesses II", "Khufu", "Cleopatra", "It was the most complete royal tomb ever found in Egypt's Valley of the Kings."],
+    ["The Rosetta Stone was the key to deciphering which script?", "Egyptian hieroglyphs", "Linear B", "Cuneiform", "Norse runes", "Jean-François Champollion cracked it in 1822. The stone is in the British Museum."],
+    ["Which dynasty ruled Russia until the revolution of 1917?", "The Romanovs", "The Habsburgs", "The Hohenzollerns", "The Bourbons", "The Romanovs had ruled Russia for over 300 years."],
+    ["In which city was Archduke Franz Ferdinand assassinated in 1914?", "Sarajevo", "Vienna", "Belgrade", "Budapest", "His assassination helped trigger the First World War."],
+    ["The 1605 Gunpowder Plot aimed to blow up which building?", "The Houses of Parliament", "The Tower of London", "St Paul's Cathedral", "Westminster Abbey", "Guy Fawkes was caught guarding the barrels of gunpowder."],
+    ["Which civilisation built the city of Chichen Itza?", "The Maya", "The Aztecs", "The Inca", "The Olmecs", "Its great pyramid, El Castillo, has 365 steps: one for each day of the year."],
+  ],
+};
+
+QB.space = {
+  k7: [
+    ["What is the star at the centre of our solar system? ☀️", "The Sun", "The Moon", "The North Star", "Mars", "The Sun is so big that about a million Earths could fit inside it!"],
+    ["What goes around the Earth and lights up the night sky? 🌙", "The Moon", "The Sun", "A comet", "Mars", "The Moon takes about a month to go around the Earth."],
+    ["Which planet do we live on? 🌍", "Earth", "Mars", "Jupiter", "Venus", "Earth is the only planet we know of with living things."],
+    ["What do astronauts wear to go outside in space? 🚀", "A spacesuit", "A swimming costume", "A raincoat", "Pyjamas", "Spacesuits give astronauts air and keep them safe."],
+    ["Which planet is called the Red Planet? 🔴", "Mars", "Venus", "Earth", "Neptune", "Mars looks red because of rusty dust on its surface."],
+    ["What do we call a group of stars that makes a picture in the sky?", "A constellation", "A comet", "A planet", "A moon", "Orion, the hunter, is a famous constellation."],
+    ["How many planets are in our solar system?", "8", "9", "7", "12", "Pluto used to be called a planet, but now it's a dwarf planet."],
+    ["Which is the biggest planet?", "Jupiter", "Earth", "Mars", "Mercury", "Jupiter is so big that all the other planets could fit inside it."],
+    ["What does a rocket need to get into space? 🚀", "Lots of fuel", "Wings like a bird", "A sail", "Pedals", "Rockets burn fuel to push themselves up really fast."],
+    ["When can you usually see the stars? ⭐", "At night", "At lunchtime", "Never", "Only on Mondays", "Stars are there in the daytime too, but the Sun is too bright to see them."],
+    ["Which planet has big, beautiful rings?", "Saturn", "Mars", "Mercury", "Earth", "Saturn's rings are made of ice and rock."],
+    ["Is the Sun a star or a planet?", "A star", "A planet", "A moon", "A comet", "It's the closest star to Earth."],
+    ["What is a person who travels into space called?", "An astronaut", "A pilot", "A plumber", "A wizard", "Astronauts train for years before going to space."],
+    ["What shape is the Earth?", "Round, like a ball", "Flat, like a pancake", "Square, like a box", "Pointy, like a triangle", "Photos from space show the Earth is round."],
+    ["The Moon shines because it reflects light from what?", "The Sun", "Street lights", "Torches", "Its own fire", "The Moon doesn't make its own light."],
+  ],
+  k11: [
+    ["Which planet is closest to the Sun?", "Mercury", "Venus", "Earth", "Mars", "Mercury is also the smallest planet."],
+    ["What is the name of our galaxy?", "The Milky Way", "Andromeda", "Orion", "The Starry Swirl", "Andromeda is our nearest big neighbouring galaxy."],
+    ["How long does it take the Earth to travel around the Sun?", "About 365 days", "24 hours", "About 30 days", "7 days", "That's why a year has 365 days (and an extra day in a leap year)."],
+    ["How long does it take the Earth to spin round once?", "About 24 hours", "About 365 days", "About 1 hour", "About 7 days", "One spin gives us one day and one night."],
+    ["Which is the hottest planet?", "Venus", "Mercury", "Mars", "Jupiter", "Venus is further from the Sun than Mercury, but its thick clouds trap the heat."],
+    ["What was the name of the first artificial satellite, launched in 1957?", "Sputnik 1", "Apollo 11", "Hubble", "Voyager 1", "It was launched by the Soviet Union and beeped radio signals back to Earth."],
+    ["Who was the first person to travel into space?", "Yuri Gagarin", "Neil Armstrong", "Buzz Aldrin", "John Glenn", "Yuri Gagarin orbited the Earth in 1961."],
+    ["What is a 'shooting star' really?", "A meteor: a space rock burning up", "A star falling to Earth", "A comet hitting the Moon", "A bolt of lightning", "Most meteors are smaller than a grain of sand!"],
+    ["What causes day and night?", "The Earth spinning", "The Sun moving around the Earth", "The Moon blocking the Sun", "Clouds covering the Sun", "When your side of the Earth faces the Sun, it's daytime."],
+    ["Which planet has a giant storm called the Great Red Spot?", "Jupiter", "Mars", "Saturn", "Neptune", "The storm is bigger than the whole Earth."],
+    ["Which British astronaut visited the International Space Station in 2015?", "Tim Peake", "Helen Sharman", "Chris Hadfield", "Neil Armstrong", "Helen Sharman was the first British astronaut, in 1991."],
+    ["What is the path a planet takes around the Sun called?", "An orbit", "An axis", "An eclipse", "A crater", "Planets orbit in shapes called ellipses: slightly squashed circles."],
+    ["What happens during a solar eclipse?", "The Moon blocks the Sun", "The Earth blocks the Sun", "The Sun switches off", "The Moon turns green", "Never look directly at the Sun, even during an eclipse!"],
+    ["Which planet is furthest from the Sun?", "Neptune", "Pluto", "Uranus", "Saturn", "Pluto is further away, but it's a dwarf planet."],
+    ["What is a light year?", "The distance light travels in a year", "A year with lots of sunshine", "The time it takes to get to the Moon", "A year on another planet", "One light year is nearly 9.5 trillion kilometres."],
+  ],
+  k14: [
+    ["What force keeps the planets in orbit around the Sun?", "Gravity", "Magnetism", "Friction", "Air resistance", "Without gravity, the planets would fly off in straight lines."],
+    ["What type of star is the Sun?", "A yellow dwarf", "A red giant", "A white dwarf", "A neutron star", "In about 5 billion years, it will swell into a red giant."],
+    ["What is thought to be at the centre of the Milky Way?", "A supermassive black hole", "A giant planet", "A huge empty space", "The biggest star", "It's called Sagittarius A* and is about 4 million times the mass of the Sun."],
+    ["Which space telescope launched in 1990 and orbits the Earth?", "Hubble", "James Webb", "Kepler", "Spitzer", "James Webb, launched in 2021, orbits the Sun about 1.5 million km from Earth."],
+    ["What is the Kuiper Belt?", "A region of icy bodies beyond Neptune", "The asteroid belt between Mars and Jupiter", "Saturn's largest ring", "A belt of stars around the galaxy", "Pluto is one of the largest objects in the Kuiper Belt."],
+    ["About how long does sunlight take to reach the Earth?", "About 8 minutes", "About 8 seconds", "About 8 hours", "About 8 days", "So when you see the Sun, you're seeing it as it was about 8 minutes ago."],
+    ["In which year was Pluto reclassified as a dwarf planet?", "2006", "1996", "2016", "1930", "Pluto was discovered in 1930."],
+    ["Which mission first landed humans on the Moon?", "Apollo 11", "Apollo 13", "Gemini 4", "Voyager 1", "Apollo 13 had to abandon its Moon landing after an explosion on board."],
+    ["What is a nebula?", "A cloud of gas and dust in space", "A dead star", "A type of planet", "A comet's tail", "New stars are born inside some nebulae."],
+    ["Which planet spins on its side?", "Uranus", "Neptune", "Venus", "Mars", "Uranus is tilted about 98°, perhaps after a huge collision long ago."],
+    ["What is the boundary around a black hole beyond which nothing can escape?", "The event horizon", "The singularity", "The accretion disc", "The photon sphere", "Not even light can escape from inside the event horizon."],
+    ["What is the largest moon in the solar system?", "Ganymede", "Titan", "Europa", "Earth's Moon", "Ganymede, a moon of Jupiter, is bigger than the planet Mercury."],
+    ["What are the two moons of Mars called?", "Phobos and Deimos", "Io and Europa", "Titan and Rhea", "Castor and Pollux", "Their names mean 'fear' and 'dread' in Greek."],
+    ["Where is the main asteroid belt?", "Between Mars and Jupiter", "Between Earth and Mars", "Beyond Neptune", "Between Venus and Earth", "Ceres, the largest object in the belt, is a dwarf planet."],
+    ["What is the name of NASA's Mars rover that landed in 2021?", "Perseverance", "Curiosity", "Spirit", "Opportunity", "It brought along a small helicopter called Ingenuity."],
+  ],
+  adult: [
+    ["What is the nearest star system to our Sun?", "Alpha Centauri", "Sirius", "Betelgeuse", "Vega", "Proxima Centauri, part of the Alpha Centauri system, is about 4.2 light years away."],
+    ["Which planet takes the longest to rotate once on its axis?", "Venus", "Mercury", "Jupiter", "Neptune", "Venus takes about 243 Earth days to spin once, and it spins backwards."],
+    ["Roughly how old is the universe?", "About 13.8 billion years", "About 4.6 billion years", "About 1 million years", "About 100 billion years", "4.6 billion years is the age of our solar system."],
+    ["Who was the first woman in space, in 1963?", "Valentina Tereshkova", "Sally Ride", "Helen Sharman", "Mae Jemison", "Sally Ride became the first American woman in space in 1983."],
+    ["Which spacecraft is the most distant human-made object from Earth?", "Voyager 1", "Voyager 2", "New Horizons", "Pioneer 10", "Launched in 1977, it's now in interstellar space."],
+    ["Which moon of Saturn has a thick atmosphere and lakes of liquid methane?", "Titan", "Enceladus", "Mimas", "Iapetus", "The Huygens probe landed on Titan in 2005."],
+    ["The Chandrasekhar limit is the maximum mass of what?", "A white dwarf star", "A black hole", "A planet", "A comet", "It's about 1.4 times the mass of the Sun."],
+    ["What is the vast, distant shell of icy objects thought to surround the solar system?", "The Oort Cloud", "The Kuiper Belt", "The Van Allen Belt", "The Magellanic Cloud", "Many long-period comets are thought to come from it."],
+    ["Which space telescope, launched in December 2021, observes mainly in infrared?", "James Webb Space Telescope", "Hubble Space Telescope", "Chandra X-ray Observatory", "Kepler", "Its gold-coated mirror is 6.5 metres across."],
+    ["What is a pulsar?", "A rapidly spinning neutron star", "A dying planet", "A type of comet", "A colliding galaxy", "Some pulsars spin hundreds of times a second."],
+    ["Olympus Mons, the largest volcano in the solar system, is on which planet?", "Mars", "Venus", "Jupiter", "Mercury", "It's about two and a half times the height of Mount Everest."],
+    ["What does the 'redshift' of distant galaxies tell us?", "They are moving away from us", "They are very hot", "They are made of iron", "They are getting closer", "This was key evidence that the universe is expanding."],
+    ["Which planet did William Herschel discover in 1781?", "Uranus", "Neptune", "Saturn", "Pluto", "Neptune was found in 1846, and Pluto in 1930."],
+    ["About how long does the Moon take to orbit the Earth?", "About 27 days", "About 7 days", "About 365 days", "About 2 days", "27.3 days relative to the stars; a full cycle of phases takes about 29.5 days."],
+    ["What is the boundary where the Sun's solar wind meets interstellar space called?", "The heliopause", "The ionosphere", "The event horizon", "The magnetopause", "Voyager 1 crossed it in 2012."],
+  ],
+};
+
+QB.words = {
+  k7: [
+    ["Which word rhymes with 'cat'? 🐱", "hat", "dog", "cup", "sun", "Cat, hat, bat, mat and sat all rhyme!"],
+    ["What is the opposite of 'hot'?", "cold", "warm", "sunny", "wet", "Words with opposite meanings are called opposites, or antonyms."],
+    ["Which of these words is a colour?", "purple", "jump", "happy", "table", "Purple is made by mixing red and blue."],
+    ["How do you spell the number 2 in words?", "two", "too", "to", "tuw", "'Too' means also, and 'to' is used like 'go to school'."],
+    ["Which word is a naming word (a noun)?", "dog", "run", "happy", "quickly", "Nouns name people, places, animals and things."],
+    ["Which word starts with the same sound as 'ship'? 🚢", "shoe", "sock", "chip", "sip", "'sh' makes one sound, like in shop, shell and shoe."],
+    ["What is the opposite of 'big'?", "small", "huge", "tall", "giant", "Huge and giant both mean very big!"],
+    ["Which word is spelt correctly?", "because", "becuz", "becawse", "beacuse", "A trick: Big Elephants Can Always Understand Small Elephants!"],
+    ["How many letters are in the alphabet?", "26", "20", "30", "24", "There are 5 vowels (a, e, i, o, u) and 21 consonants."],
+    ["Which word is a doing word (a verb)?", "jump", "chair", "red", "happy", "Verbs are action words, like run, swim and jump."],
+    ["What do we call more than one mouse? 🐭", "mice", "mouses", "meese", "mousies", "Some words change completely when there's more than one, like foot → feet."],
+    ["Which letter is a vowel?", "e", "b", "t", "k", "The vowels are a, e, i, o and u."],
+    ["What goes at the end of a question?", "A question mark (?)", "A full stop (.)", "A comma (,)", "A capital letter", "Like this: What is your name?"],
+    ["Which word means the same as 'happy'? 😀", "glad", "sad", "cross", "sleepy", "Words with the same meaning are called synonyms."],
+    ["What should every sentence start with?", "A capital letter", "A full stop", "A comma", "A number", "Sentences start with a capital letter and usually end with a full stop."],
+  ],
+  k11: [
+    ["What is a synonym?", "A word with the same or similar meaning", "A word with the opposite meaning", "A word that sounds the same as another", "A word that describes a verb", "'Big' and 'large' are synonyms."],
+    ["In 'The fluffy cat slept', which word is the adjective?", "fluffy", "cat", "slept", "The", "Adjectives describe nouns. 'Fluffy' describes the cat."],
+    ["Which word is spelt correctly?", "necessary", "neccessary", "necesary", "neccesary", "Tip: necessary has one collar (c) and two sleeves (s)!"],
+    ["What is the plural of 'child'?", "children", "childs", "childes", "childen", "Other unusual plurals: person → people, tooth → teeth."],
+    ["Which word is a homophone of 'there'?", "their", "three", "here", "where", "Homophones sound the same but mean different things: there, their and they're."],
+    ["In 'She sang beautifully', which word is the adverb?", "beautifully", "She", "sang", "None of them", "Adverbs often end in -ly and describe how something is done."],
+    ["What does 'enormous' mean?", "Very big", "Very small", "Very fast", "Very old", "Synonyms for enormous include huge, giant and massive."],
+    ["Which sentence uses an apostrophe correctly?", "The dog's bone was buried.", "The dog's are barking.", "Its' raining today.", "I have two cat's.", "'The dog's bone' shows the bone belongs to the dog."],
+    ["What is the opposite of 'ancient'?", "modern", "old", "antique", "historic", "Old, antique and historic are all close to ancient in meaning."],
+    ["Which of these words is a conjunction?", "because", "quickly", "table", "purple", "Conjunctions join ideas: and, but, so, because, although."],
+    ["What is a simile?", "Comparing things using 'like' or 'as'", "A word that sounds like its meaning", "Giving human feelings to objects", "A big exaggeration", "'As brave as a lion' is a simile."],
+    ["Which of these spellings is right?", "separate", "seperate", "seprate", "separete", "Remember: there's 'a rat' in separate!"],
+    ["'Buzz', 'bang' and 'sizzle' are examples of what?", "Onomatopoeia", "Alliteration", "Similes", "Metaphors", "Onomatopoeia is when a word sounds like what it describes."],
+    ["What is the prefix in 'unhappy'?", "un-", "-happy", "-y", "unh-", "A prefix goes at the start of a word and changes its meaning."],
+    ["Which word is a proper noun?", "London", "city", "river", "happiness", "Proper nouns name particular people, places or things, and start with a capital letter."],
+  ],
+  k14: [
+    ["What is personification?", "Giving human qualities to something non-human", "Comparing using 'like' or 'as'", "Repeating the same first sound", "An extreme exaggeration", "'The wind whispered through the trees' is personification."],
+    ["'Peter Piper picked a peck of pickled peppers' is an example of what?", "Alliteration", "Onomatopoeia", "Personification", "A metaphor", "Alliteration repeats the same sound at the start of nearby words."],
+    ["Who wrote 'Romeo and Juliet'?", "William Shakespeare", "Charles Dickens", "Jane Austen", "Christopher Marlowe", "Shakespeare wrote it in the 1590s; it's set in Verona, Italy."],
+    ["What does 'ambiguous' mean?", "Having more than one possible meaning", "Completely clear", "Able to use both hands equally", "Extremely ambitious", "Being able to use both hands equally is 'ambidextrous'."],
+    ["Which word fits: 'The weather will ___ our plans.'", "affect", "effect", "effekt", "affeckt", "Usually 'affect' is the verb and 'effect' is the noun: the effect of the weather."],
+    ["What is a metaphor?", "Describing something as if it IS something else", "Comparing two things using 'like' or 'as'", "A word that sounds like its meaning", "A question that needs no answer", "'Time is a thief' is a metaphor; 'quick as lightning' is a simile."],
+    ["Which word is spelt correctly?", "accommodation", "accomodation", "acommodation", "accommadation", "It's big enough for two Cs and two Ms!"],
+    ["What does the Greek root 'bio' mean, as in 'biology'?", "Life", "Earth", "Water", "Study", "'-logy' means 'study of', so biology is the study of life."],
+    ["Who wrote 'A Christmas Carol'?", "Charles Dickens", "William Shakespeare", "Roald Dahl", "Lewis Carroll", "It was published in 1843 and introduced Ebenezer Scrooge."],
+    ["What is the main job of a semicolon (;)?", "To link two closely related main clauses", "To end a question", "To show possession", "To start a list of bullet points", "Example: 'It was late; everyone was tired.'"],
+    ["What is an oxymoron?", "Two contradictory words used together", "A word spelt the same backwards", "A very long word", "An insult to someone's intelligence", "Examples: 'deafening silence', 'bittersweet', 'living dead'."],
+    ["What does 'benevolent' mean?", "Kind and generous", "Angry and violent", "Lazy and slow", "Strange and mysterious", "Its opposite is 'malevolent': wishing harm on others."],
+    ["Which word is a synonym of 'brief'?", "short", "long", "loud", "bright", "A brief meeting is a short one."],
+    ["In poetry, what is a stanza?", "A group of lines forming a section, like a verse", "A word that rhymes", "A type of poem with 14 lines", "The title of a poem", "A 14-line poem is a sonnet."],
+    ["Which novel by George Orwell is about farm animals who overthrow their farmer?", "Animal Farm", "Nineteen Eighty-Four", "Lord of the Flies", "Watership Down", "Published in 1945, it's an allegory of the Russian Revolution."],
+  ],
+  adult: [
+    ["What does 'sesquipedalian' mean?", "Given to using long words", "Lasting 150 years", "Having many legs", "Speaking several languages", "From the Latin for 'a foot and a half long'. Fittingly, it's a long word itself."],
+    ["What is a word formed from initials and pronounced as a word, like NASA?", "An acronym", "An initialism", "An anagram", "A palindrome", "An initialism is said letter by letter, like BBC."],
+    ["What is a palindrome?", "A word or phrase that reads the same backwards", "A word that sounds like its meaning", "A word with no vowels", "A word borrowed from another language", "Examples: 'level', 'racecar', 'Madam, I'm Adam'."],
+    ["What does 'ubiquitous' mean?", "Found everywhere", "Extremely rare", "Very old", "Hard to understand", "Smartphones have become ubiquitous."],
+    ["Who wrote 'Pride and Prejudice'?", "Jane Austen", "Charlotte Brontë", "George Eliot", "Mary Shelley", "Published in 1813, it opens with one of literature's most famous first lines."],
+    ["'Schadenfreude' means taking pleasure in what?", "Someone else's misfortune", "A job well done", "A good meal", "Beautiful scenery", "It's German: 'Schaden' (harm) + 'Freude' (joy)."],
+    ["Which is correct: 'There were ___ people than expected.'", "fewer", "less", "lesser", "lessen", "Use 'fewer' for things you can count and 'less' for amounts (less water)."],
+    ["What does 'pusillanimous' mean?", "Lacking courage; timid", "Extremely generous", "Very talkative", "Easily angered", "From Latin 'pusillus' (very small) and 'animus' (spirit)."],
+    ["Which language does the word 'kindergarten' come from?", "German", "Dutch", "Danish", "French", "It means 'children's garden', a term coined by Friedrich Fröbel in 1840."],
+    ["What is a word with the same spelling and sound as another but a different meaning, like 'bat'?", "A homonym", "A synonym", "An antonym", "An eponym", "An eponym is a word named after a person, like 'sandwich' or 'cardigan'."],
+    ["The word 'sandwich' is named after an earl. What kind of word is this?", "An eponym", "An acronym", "A palindrome", "An oxymoron", "Others include 'cardigan', 'wellington' and 'boycott'."],
+    ["Who wrote 'The Canterbury Tales'?", "Geoffrey Chaucer", "John Milton", "Edmund Spenser", "William Langland", "It was written in Middle English in the late 1300s."],
+    ["What does the Latin phrase 'carpe diem' mean?", "Seize the day", "Buyer beware", "Peace be with you", "I came, I saw, I conquered", "'Buyer beware' is 'caveat emptor'; 'I came, I saw, I conquered' is 'veni, vidi, vici'."],
+    ["Which spelling is correct?", "millennium", "millenium", "milennium", "milenium", "Two Ls and two Ns: from Latin 'mille' (thousand) and 'annus' (year)."],
+    ["'The pen is mightier than the sword' uses which figure of speech?", "Metonymy", "Onomatopoeia", "Alliteration", "Simile", "Metonymy uses something closely linked to stand for a thing: the pen for writing, the sword for force."],
+  ],
+};
+
+QB.sport = {
+  k7: [
+    ["How many players does each football team have on the pitch? ⚽", "11", "5", "7", "15", "That includes the goalkeeper!"],
+    ["What shape is a football?", "Round", "Square", "Triangle", "Star", "A rugby ball is oval, like a stretched egg."],
+    ["In which sport do you hit a shuttlecock? 🏸", "Badminton", "Tennis", "Golf", "Cricket", "Real shuttlecocks are made with feathers!"],
+    ["What do you try to score in football?", "Goals", "Runs", "Tries", "Baskets", "Runs are scored in cricket, tries in rugby and baskets in basketball."],
+    ["Which sport uses a bat, a ball and wickets? 🏏", "Cricket", "Football", "Swimming", "Ice hockey", "A wicket is three stumps with two bails on top."],
+    ["In swimming, which stroke is done lying on your back? 🏊", "Backstroke", "Breaststroke", "Butterfly", "Front crawl", "Backstroke races start in the water, not with a dive."],
+    ["What colour medal do you get for coming first? 🥇", "Gold", "Silver", "Bronze", "Purple", "Second place gets silver, and third gets bronze."],
+    ["Which sport is played at Wimbledon? 🎾", "Tennis", "Football", "Golf", "Rugby", "Wimbledon is the oldest tennis tournament in the world."],
+    ["How many wheels does a bicycle have? 🚲", "2", "3", "4", "1", "'Bi' means two. A tricycle has three wheels!"],
+    ["In football, which player is allowed to use their hands in their own penalty area?", "The goalkeeper", "The striker", "The referee", "The defender", "Everyone else has to use their feet, head or body."],
+    ["In which sport do you score a 'try'? 🏉", "Rugby", "Tennis", "Swimming", "Golf", "A try is when you put the ball down over the other team's line."],
+    ["In which sport might you do a slam dunk? 🏀", "Basketball", "Golf", "Snooker", "Darts", "A slam dunk is when you jump up and push the ball down through the hoop."],
+    ["What is it called when a player scores in their own team's goal?", "An own goal", "A free kick", "A penalty", "A header", "Oops! The goal counts for the other team."],
+    ["In golf, where are you trying to get the ball? ⛳", "Into a hole", "Into a net", "Into a basket", "Over a wall", "Golfers try to use as few hits as possible."],
+    ["What does a referee blow to stop the game?", "A whistle", "A trumpet", "A balloon", "A bubble", "Referees make sure everyone follows the rules."],
+  ],
+  k11: [
+    ["How long is a football match, not counting extra time?", "90 minutes", "60 minutes", "45 minutes", "120 minutes", "Two halves of 45 minutes each."],
+    ["How many players are on court for each basketball team?", "5", "6", "7", "11", "Basketball was invented in 1891 by James Naismith."],
+    ["In tennis, what is a score of zero called?", "Love", "Nil", "Duck", "Zero", "In cricket, a batter who is out for zero is out 'for a duck'."],
+    ["How often are the Summer Olympic Games usually held?", "Every 4 years", "Every year", "Every 2 years", "Every 10 years", "The Winter Olympics are also every 4 years, two years apart from the Summer Games."],
+    ["What is the highest score you can get with three darts?", "180", "100", "150", "300", "Three treble 20s: 60 + 60 + 60 = 180!"],
+    ["Which country did the sport of rugby start in?", "England", "New Zealand", "Australia", "South Africa", "It's named after Rugby School in Warwickshire."],
+    ["In cricket, how many balls are bowled in an over?", "6", "4", "8", "10", "After each over, a different bowler bowls from the other end."],
+    ["How far is a marathon?", "About 42 km (26.2 miles)", "About 10 km", "About 100 km", "About 5 km", "The London Marathon is one of the biggest in the world."],
+    ["What colour card does a football referee show to send a player off?", "Red", "Yellow", "Green", "Blue", "Two yellow cards in the same game also make a red card."],
+    ["What is the rule called when an attacker is behind the last defender as the ball is passed forward to them?", "Offside", "Handball", "Throw-in", "Corner", "You can't be offside in your own half."],
+    ["How many holes are there in a standard round of golf?", "18", "9", "12", "20", "Some shorter courses have only 9 holes."],
+    ["Which swimming stroke is usually the fastest?", "Front crawl", "Breaststroke", "Backstroke", "Doggy paddle", "In 'freestyle' races, almost all swimmers choose front crawl."],
+    ["In which sport is a puck used?", "Ice hockey", "Cricket", "Volleyball", "Badminton", "A puck is a hard rubber disc."],
+    ["In snooker, which ball is worth the most points?", "Black", "Pink", "Blue", "Red", "Black is worth 7 points; reds are worth 1 each."],
+    ["How many points is a touchdown worth in American football?", "6", "3", "7", "1", "Teams can then try for an extra one or two points."],
+  ],
+  k14: [
+    ["How long is each half of a rugby union match?", "40 minutes", "45 minutes", "30 minutes", "35 minutes", "Football halves are 45 minutes."],
+    ["What is it called when one player scores three goals in a match?", "A hat-trick", "A treble", "A triple", "A full house", "The term comes from cricket, where a bowler who took three wickets with three balls was given a hat."],
+    ["Which city hosted the 2012 Summer Olympics?", "London", "Paris", "Beijing", "Rio de Janeiro", "London has hosted the Olympics three times: 1908, 1948 and 2012."],
+    ["Which country hosted the first FIFA World Cup in 1930?", "Uruguay", "Brazil", "Italy", "England", "Uruguay also won it, beating Argentina in the final."],
+    ["Which four tournaments make up tennis's Grand Slams?", "Australian Open, French Open, Wimbledon, US Open", "Wimbledon, Queen's, US Open, Davis Cup", "Australian Open, Italian Open, Wimbledon, US Open", "French Open, Wimbledon, Olympics, US Open", "Wimbledon is the only Grand Slam played on grass."],
+    ["In golf, what is a 'birdie'?", "One shot under par", "One shot over par", "Two shots under par", "Exactly par", "One over par is a bogey; two under is an eagle."],
+    ["How many players does each netball team have on court?", "7", "5", "6", "11", "Each position wears a bib with letters like GS (Goal Shooter) and C (Centre)."],
+    ["In Formula 1, what does the chequered flag mean?", "The race is over", "There's danger on the track", "Time for a pit stop", "A car must leave the race", "It's waved first at the winner as they cross the finish line."],
+    ["Which sport is often called 'the beautiful game'?", "Football", "Tennis", "Cricket", "Golf", "The phrase is often linked to the Brazilian legend Pelé."],
+    ["In cricket, what does LBW stand for?", "Leg before wicket", "Long ball wide", "Last batter walking", "Leg bye wide", "A batter can be out LBW if the ball would have hit the stumps but hit their leg instead."],
+    ["How long is an Olympic swimming pool?", "50 metres", "25 metres", "100 metres", "33 metres", "Many local pools are 25 metres, half the length."],
+    ["In basketball, how many points is a shot from beyond the arc worth?", "3", "2", "1", "4", "Free throws are worth 1 point each."],
+    ["Who was the first person to run a mile in under four minutes, in 1954?", "Roger Bannister", "Mo Farah", "Sebastian Coe", "Usain Bolt", "He ran it in 3 minutes 59.4 seconds in Oxford."],
+    ["What is the normal maximum break in snooker?", "147", "100", "180", "200", "15 reds with 15 blacks, then all the colours: 147."],
+    ["Which country won the 1966 FIFA World Cup?", "England", "West Germany", "Brazil", "Italy", "England beat West Germany 4–2 at Wembley; Geoff Hurst scored a hat-trick."],
+  ],
+  adult: [
+    ["In which year did England win the Rugby World Cup?", "2003", "1995", "2007", "2019", "Jonny Wilkinson's late drop goal beat Australia in Sydney."],
+    ["Which golfer has won the most men's major championships?", "Jack Nicklaus", "Tiger Woods", "Arnold Palmer", "Gary Player", "Nicklaus won 18; Tiger Woods has 15."],
+    ["The Ashes is a cricket series between England and which country?", "Australia", "India", "South Africa", "New Zealand", "It began after a mock obituary of English cricket was published in 1882."],
+    ["In which sport is the Ryder Cup contested?", "Golf", "Tennis", "Sailing", "Polo", "It's played between teams from Europe and the USA."],
+    ["Who was the first footballer to be knighted while still playing?", "Stanley Matthews", "Bobby Charlton", "Bobby Moore", "Kevin Keegan", "He was knighted in 1965 and played his last top-flight match aged 50."],
+    ["Where does the Tour de France traditionally finish?", "Paris", "Lyon", "Nice", "Marseille", "The final stage usually ends on the Champs-Élysées."],
+    ["How many players does each water polo team have in the water?", "7", "6", "5", "11", "That's six outfield players plus a goalkeeper."],
+    ["What is the oldest national football competition in the world?", "The FA Cup", "The Scottish Cup", "The Copa América", "The Football League", "The first FA Cup final was played in 1872."],
+    ["In darts, how many points is the bullseye worth?", "50", "25", "100", "60", "The outer bull ring is worth 25."],
+    ["Which famous horse race is run at Aintree?", "The Grand National", "The Derby", "The Gold Cup", "The St Leger", "The Derby is at Epsom, the Gold Cup at Cheltenham and the St Leger at Doncaster."],
+    ["The 'Fosbury Flop' is a technique in which event?", "High jump", "Long jump", "Pole vault", "Hurdles", "Dick Fosbury used it to win Olympic gold in 1968."],
+    ["Which country has won the most Summer Olympic gold medals in total?", "The USA", "China", "Great Britain", "Russia", "The USA has won over 1,000 Summer Olympic golds."],
+    ["Who became the first British winner of the Tour de France, in 2012?", "Bradley Wiggins", "Chris Froome", "Mark Cavendish", "Geraint Thomas", "Chris Froome won it the following year."],
+    ["What surface is Wimbledon played on?", "Grass", "Clay", "Hard court", "Carpet", "The French Open is played on clay."],
+    ["Which Manchester club played at Maine Road until 2003?", "Manchester City", "Manchester United", "Stockport County", "Salford City", "City then moved to what is now the Etihad Stadium."],
+  ],
+};
+
+
+// Maths questions are made up fresh every time, so they never run out.
+const MATHS = (() => {
+  const R = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  const pickOne = a => a[Math.floor(Math.random() * a.length)];
+  const shuffle = a => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
+  const N = n => (n < 0 ? '−' + Math.abs(n).toLocaleString('en-GB') : (n === 0 ? 0 : n).toLocaleString('en-GB'));
+  const SUP = { 0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴', 5: '⁵', 6: '⁶', 7: '⁷', 8: '⁸', 9: '⁹' };
+  const sup = n => String(n).split('').map(d => SUP[d]).join('');
+
+  // Build [question, answer, wrong1, wrong2, wrong3, working] from a numeric answer.
+  function make(q, ans, cands, fact, opts) {
+    opts = opts || {};
+    const fmt = opts.fmt || N;
+    const seen = new Set([fmt(ans)]), wrong = [];
+    const add = c => {
+      if (wrong.length >= 3 || !Number.isFinite(c)) return;
+      if (c === 0) c = 0; // turns −0 into 0
+      if (!opts.neg && c < 0) return;
+      if (!opts.dec && Math.round(c) !== c) return;
+      const s = fmt(c); if (seen.has(s)) return;
+      seen.add(s); wrong.push(s);
+    };
+    cands.forEach(add);
+    const spread = opts.spread || Math.max(3, Math.ceil(Math.abs(ans) * 0.15));
+    let guard = 0;
+    while (wrong.length < 3 && guard++ < 300) add(ans + (Math.random() < 0.5 ? -1 : 1) * R(1, spread));
+    return [q, fmt(ans), ...wrong, fact];
+  }
+
+  const COUNT = [['🍎', 'apples'], ['🐟', 'fish'], ['⭐', 'stars'], ['🎈', 'balloons'], ['🐞', 'ladybirds'], ['🍪', 'cookies'], ['🚗', 'cars'], ['🌸', 'flowers']];
+  const SHAPES = [['triangle', 3], ['square', 4], ['rectangle', 4], ['pentagon', 5], ['hexagon', 6], ['octagon', 8]];
+  const COINS = [1, 2, 5, 10, 20, 50];
+
+  const k7 = [
+    () => { const a = R(1, 10), b = R(1, 10); return make(`What is ${a} + ${b}?`, a + b, [a + b + 1, a + b - 1, a + b + 2], `${a} + ${b} = ${a + b}`); },
+    () => { const a = R(5, 20), b = R(1, a); return make(`What is ${a} − ${b}?`, a - b, [a - b + 1, a - b - 1, a + b], `${a} − ${b} = ${a - b}`); },
+    () => { const a = R(1, 9); return make(`${a} + ? = 10`, 10 - a, [11 - a, 9 - a, a], `${a} + ${10 - a} = 10. These are called number bonds to 10!`); },
+    () => { const n = R(1, 10); return make(`What is double ${n}?`, 2 * n, [2 * n + 1, 2 * n - 1, n + 2], `Double ${n} means ${n} + ${n} = ${2 * n}`); },
+    () => { const n = R(3, 10), e = pickOne(COUNT); return make(`How many ${e[1]} can you count?\n${e[0].repeat(n)}`, n, [n + 1, n - 1, n + 2], `There are ${n}. Touching each one as you count helps!`); },
+    () => { const n = R(10, 98); return make(`What number comes after ${n}?`, n + 1, [n - 1, n + 10, n + 2], `${n} + 1 = ${n + 1}`); },
+    () => { const n = R(1, 10) * 2; return make(`What is half of ${n}?`, n / 2, [n / 2 + 1, n / 2 - 1, n], `Half of ${n} is ${n / 2}, because ${n / 2} + ${n / 2} = ${n}`); },
+    () => { const s = pickOne(SHAPES); return make(`How many sides does a ${s[0]} have?`, s[1], [s[1] + 1, s[1] - 1, s[1] + 2], `A ${s[0]} has ${s[1]} straight sides.`); },
+    () => { const t = pickOne([2, 5, 10]), b = R(1, 10); return make(`What is ${b} × ${t}?`, b * t, [b * t + t, b * t - t, b + t], `${b} ${b === 1 ? 'lot' : 'lots'} of ${t} is ${b * t}`); },
+    () => { const a = pickOne(COINS), b = pickOne(COINS); return make(`You have a ${a}p coin and a ${b}p coin. How much money is that?`, a + b, [a + b + 1, a + b + 10, Math.abs(a - b)], `${a}p + ${b}p = ${a + b}p`, { fmt: n => n + 'p' }); },
+  ];
+
+  const k11 = [
+    () => { const a = R(2, 12), b = R(2, 12); return make(`What is ${a} × ${b}?`, a * b, [a * (b + 1), a * (b - 1), (a + 1) * b, a * b + 10], `${a} × ${b} = ${a * b}`); },
+    () => { const d = R(2, 12), q = R(2, 12); return make(`What is ${d * q} ÷ ${d}?`, q, [q + 1, q - 1, q + 2], `${d * q} ÷ ${d} = ${q}, because ${d} × ${q} = ${d * q}`); },
+    () => {
+      const den = pickOne([2, 3, 4, 5, 10]), amt = den * R(2, 12), num = den > 2 && Math.random() < 0.4 ? R(2, den - 1) : 1, ans = amt / den * num;
+      return make(`What is ${num}/${den} of ${amt}?`, ans, [amt / den, ans + amt / den, ans + 2, amt - ans], `${amt} ÷ ${den} = ${amt / den}${num > 1 ? `, then ${amt / den} × ${num} = ${ans}` : ''}`);
+    },
+    () => {
+      const p = pickOne([10, 20, 25, 50]), n = { 10: 10, 20: 5, 25: 4, 50: 2 }[p] * R(2, 30), ans = n * p / 100;
+      return make(`What is ${p}% of ${n}?`, ans, [ans * 2, ans + 5, n / 10, ans - 2], `${p}% of ${n} = ${n} × ${p} ÷ 100 = ${ans}`);
+    },
+    () => {
+      const to = pickOne([10, 100, 1000]), n = R(1001, 9899), ans = Math.round(n / to) * to;
+      const other = Math.floor(n / to) * to === ans ? Math.ceil(n / to) * to : Math.floor(n / to) * to;
+      return make(`Round ${N(n)} to the nearest ${N(to)}.`, ans, [other, ans + to, ans - to], `Look at the digit after the ${to === 10 ? 'tens' : to === 100 ? 'hundreds' : 'thousands'}: 5 or more rounds up, 4 or less rounds down. So it's ${N(ans)}.`, { spread: to * 2 });
+    },
+    () => { const a = R(120, 799), b = R(110, 999 - a); return make(`What is ${a} + ${b}?`, a + b, [a + b + 10, a + b - 10, a + b + 100], `${a} + ${b} = ${a + b}`); },
+    () => { const a = R(300, 999), b = R(101, a - 50); return make(`What is ${a} − ${b}?`, a - b, [a - b + 10, a - b - 10, a - b + 100], `${a} − ${b} = ${a - b}`); },
+    () => { const n = R(2, 12); return make(`What is ${n} squared (${n}²)?`, n * n, [n * 2, n * n + n, (n + 1) * (n + 1)], `${n}² means ${n} × ${n} = ${n * n}`); },
+    () => { const h = R(2, 5); return make(`How many minutes are in ${h} hours?`, h * 60, [h * 100, h * 60 + 30, h * 30], `There are 60 minutes in an hour, so ${h} × 60 = ${h * 60}`); },
+    () => { const l = R(3, 15), w = R(2, 10); return make(`A rectangle is ${l} cm long and ${w} cm wide. What is its perimeter?`, 2 * (l + w), [l * w, l + w, 2 * l + w], `Perimeter = ${l} + ${w} + ${l} + ${w} = ${2 * (l + w)} cm`, { fmt: n => n + ' cm' }); },
+  ];
+
+  const sgn = n => (n < 0 ? `− ${Math.abs(n)}` : `+ ${n}`);
+  const k14 = [
+    () => {
+      const x = R(-6, 12), a = R(2, 9), b = R(-15, 20) || 3, c = a * x + b;
+      return make(`Solve for x:  ${a}x ${sgn(b)} = ${N(c)}`, x, [x + 1, x - 1, -x, (c + b) / a, c - b],
+        `${a}x = ${N(c)} ${b < 0 ? '+ ' + Math.abs(b) : '− ' + b} = ${N(c - b)}, so x = ${N(c - b)} ÷ ${a} = ${N(x)}`, { neg: true });
+    },
+    () => {
+      const a = R(-12, 12) || 4, b = R(-12, 12) || -3, op = pickOne(['+', '−', '×']);
+      const ans = op === '+' ? a + b : op === '−' ? a - b : a * b, show = n => (n < 0 ? `(${N(n)})` : N(n));
+      return make(`What is ${show(a)} ${op} ${show(b)}?`, ans, [-ans, ans + 1, ans - 1, op === '×' ? a + b : a * b], `${show(a)} ${op} ${show(b)} = ${N(ans)}`, { neg: true });
+    },
+    () => {
+      const p = pickOne([5, 15, 30, 35, 40, 45, 60, 75]), n = 20 * R(2, 20), ans = n * p / 100;
+      return make(`What is ${p}% of ${n}?`, ans, [ans + n / 10, ans - n / 20, n * p / 10, ans + 5], `1% of ${n} is ${n / 100}, so ${p}% is ${n / 100} × ${p} = ${ans}`);
+    },
+    () => {
+      const [b, e] = pickOne([[2, R(3, 8)], [3, R(2, 4)], [4, 3], [5, 3], [10, R(2, 6)], [6, 2], [7, 2]]), ans = Math.pow(b, e);
+      return make(`What is ${b}${sup(e)}?`, ans, [b * e, Math.pow(b, e - 1), Math.pow(b, e + 1), ans + b], `${b}${sup(e)} = ${Array(e).fill(b).join(' × ')} = ${N(ans)}`);
+    },
+    () => { const n = R(4, 15); return make(`What is √${n * n}?`, n, [n + 1, n - 1, n * 2, n * n / 2], `${n} × ${n} = ${n * n}, so √${n * n} = ${n}`); },
+    () => {
+      const base = 2 * R(2, 10), h = R(3, 12), ans = base * h / 2;
+      return make(`A triangle has a base of ${base} cm and a height of ${h} cm. What is its area?`, ans, [base * h, base + h, ans + h], `Area of a triangle = ½ × base × height = ½ × ${base} × ${h} = ${ans} cm²`, { fmt: n => n + ' cm²' });
+    },
+    () => {
+      const a = R(25, 85), b = R(25, 150 - a), c = 180 - a - b;
+      return make(`Two angles in a triangle are ${a}° and ${b}°. What is the third angle?`, c, [360 - a - b, c + 10, c - 10], `Angles in a triangle add up to 180°: 180 − ${a} − ${b} = ${c}°`, { fmt: n => n + '°' });
+    },
+    () => {
+      const a = R(2, 9), b = R(2, 9), c = R(2, 9), t = R(0, 2);
+      if (t === 0) return make(`What is ${a} + ${b} × ${c}?`, a + b * c, [(a + b) * c, a * b + c, a + b + c], `Multiply first: ${b} × ${c} = ${b * c}, then ${a} + ${b * c} = ${a + b * c}`);
+      if (t === 1) return make(`What is (${a} + ${b}) × ${c}?`, (a + b) * c, [a + b * c, a * c + b, a + b + c], `Brackets first: ${a} + ${b} = ${a + b}, then ${a + b} × ${c} = ${(a + b) * c}`);
+      return make(`What is ${a * c} ÷ ${c} + ${b}?`, a + b, [a + b + 1, a * c + b, a + b - 1], `Divide first: ${a * c} ÷ ${c} = ${a}, then ${a} + ${b} = ${a + b}`);
+    },
+    () => {
+      for (let tries = 0; tries < 50; tries++) {
+        const k = R(3, 5), mean = R(4, 20), nums = [];
+        for (let i = 0; i < k - 1; i++) nums.push(R(Math.max(1, mean - 8), mean + 8));
+        const last = mean * k - nums.reduce((s, v) => s + v, 0);
+        if (last < 1 || last > 40) continue;
+        nums.push(last);
+        const sum = mean * k;
+        return make(`What is the mean of ${nums.join(', ')}?`, mean, [mean + 1, mean - 1, sum, mean + 2], `Add them up (${sum}) and divide by how many there are (${k}): ${sum} ÷ ${k} = ${mean}`);
+      }
+      return make('What is the mean of 2, 4 and 6?', 4, [3, 5, 12], 'Add them up (12) and divide by 3: 12 ÷ 3 = 4');
+    },
+  ];
+
+  const PRIMES = [53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149];
+  const FAKES = [51, 57, 69, 77, 81, 87, 91, 93, 99, 111, 117, 119, 121, 123, 129, 133, 141, 143, 147];
+  const smallestFactor = n => { for (let d = 2; d * d <= n; d++) if (n % d === 0) return d; return n; };
+  const FRACS = [['1/8', 12.5], ['3/8', 37.5], ['5/8', 62.5], ['7/8', 87.5], ['3/5', 60], ['7/20', 35], ['9/25', 36], ['11/20', 55], ['3/40', 7.5], ['1/16', 6.25], ['2/5', 40], ['3/25', 12]];
+
+  const adult = [
+    () => { const a = R(12, 49), b = R(11, 29), t = b - (b % 10), u = b % 10; return make(`What is ${a} × ${b}?`, a * b, [a * b + 10, a * b - 10, a * (b + 1), (a + 1) * b], u ? `${a} × ${t} = ${N(a * t)} and ${a} × ${u} = ${a * u}, so ${a} × ${b} = ${N(a * b)}` : `${a} × ${b} = ${N(a * b)}`); },
+    () => {
+      const [p, m] = pickOne([[12.5, 8], [15, 20], [17.5, 40], [35, 20], [45, 20], [2.5, 40], [7.5, 40]]), n = m * R(3, 30), ans = n * p / 100;
+      return make(`What is ${p}% of ${N(n)}?`, ans, [ans * 2, n * p / 10, ans + n / 20, ans - n / 40], `${p}% of ${N(n)} = ${N(n)} × ${p} ÷ 100 = ${N(ans)}`);
+    },
+    () => {
+      const x = 5 * R(2, 60), vat = x / 5, ans = x + vat;
+      return make(`A price is £${x} before 20% VAT. What is the price including VAT?`, ans, [x + 20, x + x / 10, ans + 5, x * 5 / 4], `20% of £${x} is £${vat}, so £${x} + £${vat} = £${ans}`, { fmt: n => '£' + N(n) });
+    },
+    () => {
+      const a = 20 * R(2, 20), pc = pickOne([10, 15, 20, 25, 40, 50, 60, 75]), up = Math.random() < 0.6 || pc > 50;
+      const ch = a * pc / 100, b = up ? a + ch : a - ch;
+      return make(`A price changes from £${a} to £${b}. What is the percentage ${up ? 'increase' : 'decrease'}?`, pc, [pc + 5, pc - 5, Math.round(ch / b * 100), pc * 2],
+        `The change is £${ch}. £${ch} ÷ £${a} × 100 = ${pc}%. (Always divide by the original price!)`, { fmt: n => n + '%' });
+    },
+    () => { const n = R(13, 35); return make(`What is ${n}²?`, n * n, [n * n + n, n * n - n, (n - 1) * (n + 1), n * n + 10], `${n}² = ${n} × ${n} = ${N(n * n)}`); },
+    () => { const n = R(13, 30); return make(`What is √${N(n * n)}?`, n, [n + 1, n - 1, n + 2, n - 2], `${n} × ${n} = ${N(n * n)}, so √${N(n * n)} = ${n}`); },
+    () => {
+      const p = pickOne(PRIMES), f = shuffle(FAKES).slice(0, 3), d = smallestFactor(f[0]);
+      return ['Which of these is a prime number?', String(p), ...f.map(String), `${p} can only be divided by 1 and itself. ${f[0]} isn't prime: ${d} × ${f[0] / d} = ${f[0]}.`];
+    },
+    () => {
+      const fr = pickOne(FRACS), others = shuffle(FRACS.filter(x => x[1] !== fr[1])).slice(0, 3), [nm, dn] = fr[0].split('/');
+      return [`What is ${fr[0]} as a percentage?`, fr[1] + '%', ...others.map(o => o[1] + '%'), `${fr[0]} = ${nm} ÷ ${dn} = ${fr[1] / 100} = ${fr[1]}%`];
+    },
+    () => { const n = R(8, 12), ans = Math.pow(2, n); return make(`What is 2${sup(n)}?`, ans, [ans / 2, ans * 2, 2 * n, ans + ans / 4], `2${sup(n)} = ${N(ans)}. Each extra power doubles the number.`); },
+    () => { const q = R(101, 999), d = R(3, 9); return make(`What is ${N(q * d)} ÷ ${d}?`, q, [q + 1, q - 1, q + 10, q - 10], `${q} × ${d} = ${N(q * d)}, so ${N(q * d)} ÷ ${d} = ${q}`); },
+    () => {
+      const s = 10 * R(3, 8), t = pickOne([0.5, 1.5, 2.5, 3.5]), d = s * t;
+      return make(`A car travels at ${s} mph for ${t} hours. How far does it go?`, d, [d + s, d - s / 2, s + t * 10, d + 10], `Distance = speed × time = ${s} × ${t} = ${d} miles`, { fmt: n => N(n) + ' miles' });
+    },
+  ];
+
+  const GEN = { k7, k11, k14, adult };
+  return { generate: level => pickOne(GEN[level])(), GEN };
+})();
+
+
+// =====================================================================
+//  SETTINGS
+// =====================================================================
+const CONFIG = { title: 'Quiz Quest', soloQuestions: 10 };
+const LEVELS = {
+  k7:    { label: 'Age 7',    colour: '#1fa865' },
+  k11:   { label: 'Age 11',   colour: '#2f8fe0' },
+  k14:   { label: 'Age 14',   colour: '#8a4fe0' },
+  adult: { label: 'Grown-up', colour: '#e0573a' },
+};
+const TOPICS = [
+  { id: 'animals',   name: 'Animals & Nature', icon: '🐾', colour: '#3fbf6f' },
+  { id: 'science',   name: 'Science',          icon: '🔬', colour: '#2f8fe0' },
+  { id: 'geography', name: 'Geography',        icon: '🌍', colour: '#1fa5a5' },
+  { id: 'history',   name: 'History',          icon: '🏰', colour: '#c0843a' },
+  { id: 'space',     name: 'Space',            icon: '🚀', colour: '#5a4fcf' },
+  { id: 'words',     name: 'Words',            icon: '📚', colour: '#e05a8a' },
+  { id: 'maths',     name: 'Maths',            icon: '🔢', colour: '#f0a020' },
+  { id: 'sport',     name: 'Sport',            icon: '⚽', colour: '#2e9e4a' },
+  { id: 'mixed',     name: 'Mixed Bag',        icon: '🎲', colour: '#7a6fa0' },
+];
+const AVATARS = ['🦖', '🦄', '⚽', '👑', '🧔', '🐱', '🐶', '🦊', '🐼', '🚀', '🌟', '🎸', '🦁', '🐸', '🎨', '🐢', '🦉', '🐬'];
+
+// ---------- helpers ----------
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const shuffle = a => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const uid = () => Math.random().toString(36).slice(2, 9);
+const topicById = id => TOPICS.find(t => t.id === id);
+
+// ---------- saving (on this device only) ----------
+const KEY = 'quizquest.v1';
+function defaultPlayers() {
+  return [
+    { id: uid(), name: '', level: 'k7', avatar: '🦖', read: true },
+    { id: uid(), name: '', level: 'k11', avatar: '🦄', read: false },
+    { id: uid(), name: '', level: 'k14', avatar: '⚽', read: false },
+    { id: uid(), name: '', level: 'adult', avatar: '👑', read: false },
+    { id: uid(), name: '', level: 'adult', avatar: '🧔', read: false },
+  ];
+}
+let S;
+try { S = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { S = null; }
+if (!S || !Array.isArray(S.players)) S = { players: defaultPlayers(), best: {}, seen: {}, sound: true, setupDone: false, fam: null };
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+const nameOf = p => p.name.trim() || `${LEVELS[p.level].label} player`;
+const playerById = id => S.players.find(p => p.id === id);
+function starsFor(score, total) { const r = score / total; return r >= 0.9 ? 3 : r >= 0.7 ? 2 : r >= 0.5 ? 1 : 0; }
+function totalStars(p) { let n = 0; for (const k in S.best) if (k.startsWith(p.id + '|')) n += S.best[k]; return n; }
+const starStr = n => '★'.repeat(n) + '☆'.repeat(3 - n);
+
+// ---------- sound & speech ----------
+let ac = null;
+function initAudio() {
+  if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { ac = null; } }
+  if (ac && ac.state === 'suspended') ac.resume().catch(() => {});
+}
+function tone(f, dur, type, vol, delay) {
+  if (!ac || !S.sound) return;
+  const t0 = ac.currentTime + (delay || 0), o = ac.createOscillator(), g = ac.createGain();
+  o.type = type || 'triangle'; o.frequency.setValueAtTime(f, t0);
+  g.gain.setValueAtTime(vol || 0.12, t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(g); g.connect(ac.destination); o.start(t0); o.stop(t0 + dur + 0.02);
+}
+const sfx = {
+  right() { [660, 880, 1320].forEach((f, i) => tone(f, 0.16, 'triangle', 0.12, i * 0.07)); },
+  wrong() { tone(330, 0.18, 'sine', 0.12); tone(247, 0.3, 'sine', 0.12, 0.15); },
+  done()  { [523, 659, 784, 1047, 784, 1047].forEach((f, i) => tone(f, 0.2, 'triangle', 0.12, i * 0.1)); },
+  tap()   { tone(900, 0.05, 'sine', 0.05); },
+};
+const canSpeak = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+const stripEmoji = s => s.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}\u{2B50}\u{2B55}]/gu, '').replace(/\s+/g, ' ').trim();
+function speak(text) {
+  if (!canSpeak || !S.sound) return;
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(stripEmoji(text).replace(/−/g, 'minus ').replace(/×/g, 'times').replace(/÷/g, 'divided by').replace(/√/g, 'the square root of '));
+    const voices = speechSynthesis.getVoices();
+    const v = voices.find(v => /en-GB/i.test(v.lang)) || voices.find(v => /^en/i.test(v.lang));
+    if (v) u.voice = v;
+    u.rate = 0.92; u.lang = (v && v.lang) || 'en-GB';
+    speechSynthesis.speak(u);
+  } catch (e) {}
+}
+function stopSpeaking() { if (canSpeak) try { speechSynthesis.cancel(); } catch (e) {} }
+
+// ---------- question picking ----------
+function makeQuestion(raw, id, topic) {
+  const [text, correct, w1, w2, w3, fact] = raw;
+  return { id, topic, text, correct, fact, options: shuffle([correct, w1, w2, w3]) };
+}
+function poolFor(topic, level) {
+  if (!QB[topic] || !QB[topic][level]) return [];
+  return QB[topic][level].map((raw, i) => ({ raw, id: `${topic}.${level}.${i}` }));
+}
+// least-recently-seen first, so questions don't repeat until you've seen them all
+function drawFromPool(topic, level, used) {
+  const pool = poolFor(topic, level).filter(x => !used.has(x.id));
+  if (!pool.length) return null;
+  const best = shuffle(pool).sort((a, b) => (S.seen[a.id] || 0) - (S.seen[b.id] || 0))[0];
+  return makeQuestion(best.raw, best.id, topic);
+}
+function drawMaths(level, used) {
+  for (let i = 0; i < 30; i++) {
+    const raw = MATHS.generate(level), id = 'maths:' + raw[0];
+    if (!used.has(id)) return makeQuestion(raw, id, 'maths');
+  }
+  const raw = MATHS.generate(level); return makeQuestion(raw, 'maths:' + raw[0] + Math.random(), 'maths');
+}
+function drawOne(topic, level, used) {
+  let t = topic;
+  if (t === 'mixed') t = pick(TOPICS.filter(x => x.id !== 'mixed')).id;
+  let q = t === 'maths' ? drawMaths(level, used) : drawFromPool(t, level, used);
+  if (!q) { // ran out in this topic: fall back to any topic
+    for (const tt of shuffle(TOPICS.filter(x => x.id !== 'mixed' && x.id !== 'maths'))) { q = drawFromPool(tt.id, level, used); if (q) break; }
+    if (!q) q = drawMaths(level, used);
+  }
+  used.add(q.id);
+  return q;
+}
+
+// ---------- screens ----------
+let screen = 'home', Q = null, pickedPlayer = null, pickedLevel = null;
+const main = $('main');
+function setBar(title, back) {
+  $('barTitle').textContent = title;
+  $('backBtn').classList.toggle('ghost', !back);
+  $('backBtn').onclick = back || null;
+}
+function go(fn) { stopSpeaking(); stopConfetti(); window.scrollTo(0, 0); fn(); }
+
+function renderHome() {
+  screen = 'home';
+  setBar(CONFIG.title, null);
+  main.innerHTML = `
+    <div class="logo">Quiz Quest</div>
+    <p class="sub">Who's playing?</p>
+    <div class="grid">${S.players.map(p => `
+      <button class="card pcard" data-solo="${p.id}">
+        <div class="av">${p.avatar}</div>
+        <div class="nm ${p.name.trim() ? '' : 'empty'}">${esc(nameOf(p))}</div>
+        <span class="badge" style="background:${LEVELS[p.level].colour}">${LEVELS[p.level].label}</span>
+        <div class="stars">⭐ ${totalStars(p)} stars</div>
+      </button>`).join('')}
+    </div>
+    <div class="btn-row">
+      <button class="big-btn fam" id="famBtn" ${S.players.length < 2 ? 'disabled' : ''}>⚔️ Family Battle</button>
+      <button class="big-btn alt" id="editBtn">✏️ Edit players</button>
+    </div>
+    <p class="note">Everyone plays at their own level, so Family Battles are fair.<br>Names and scores are saved on this device only.</p>`;
+  main.querySelectorAll('[data-solo]').forEach(b => b.onclick = () => { sfx.tap(); pickedPlayer = playerById(b.dataset.solo); pickedLevel = pickedPlayer.level; go(renderTopics); });
+  $('famBtn').onclick = () => { sfx.tap(); go(renderFamilySetup); };
+  $('editBtn').onclick = () => { sfx.tap(); go(renderPlayers); };
+}
+
+function renderPlayers() {
+  screen = 'players';
+  setBar('Players', S.setupDone ? () => go(renderHome) : null);
+  main.innerHTML = `
+    <h1>${S.setupDone ? 'Edit players' : 'Welcome to Quiz Quest! 👋'}</h1>
+    <p class="sub">Type everyone's name and pick their level. Tap a picture to change it.</p>
+    <div id="plist">${S.players.map(p => `
+      <div class="card prow" data-p="${p.id}">
+        <button class="avb" data-av="${p.id}" aria-label="Change picture">${p.avatar}</button>
+        <input data-name="${p.id}" maxlength="14" placeholder="Name" value="${esc(p.name)}">
+        <button class="del" data-del="${p.id}" aria-label="Remove">✕</button>
+        <div class="opts">
+          <div class="chips">${Object.entries(LEVELS).map(([k, l]) => `<button class="chip ${p.level === k ? 'on' : ''}" data-lv="${p.id}" data-k="${k}">${l.label}</button>`).join('')}</div>
+          ${canSpeak ? `<button class="toggle ${p.read ? 'on' : ''}" data-read="${p.id}"><span class="sw"></span> Read questions out loud</button>` : ''}
+        </div>
+      </div>`).join('')}
+    </div>
+    <button class="big-btn alt" id="addBtn" ${S.players.length >= 8 ? 'disabled' : ''}>+ Add player</button>
+    <button class="big-btn" id="doneBtn">Done</button>
+    <p class="note">Names are kept on this device only.</p>`;
+  const syncNames = () => main.querySelectorAll('[data-name]').forEach(i => { playerById(i.dataset.name).name = i.value; });
+  main.querySelectorAll('[data-av]').forEach(b => b.onclick = () => {
+    const p = playerById(b.dataset.av); p.avatar = AVATARS[(AVATARS.indexOf(p.avatar) + 1) % AVATARS.length]; b.textContent = p.avatar; sfx.tap();
+  });
+  main.querySelectorAll('[data-lv]').forEach(b => b.onclick = () => {
+    syncNames(); const p = playerById(b.dataset.lv); p.level = b.dataset.k; if (p.level === 'k7') p.read = true; renderPlayers();
+  });
+  main.querySelectorAll('[data-read]').forEach(b => b.onclick = () => { const p = playerById(b.dataset.read); p.read = !p.read; b.classList.toggle('on', p.read); });
+  main.querySelectorAll('[data-del]').forEach(b => b.onclick = () => {
+    syncNames(); if (S.players.length <= 1) return;
+    S.players = S.players.filter(p => p.id !== b.dataset.del); renderPlayers();
+  });
+  $('addBtn').onclick = () => { syncNames(); S.players.push({ id: uid(), name: '', level: 'adult', avatar: pick(AVATARS), read: false }); renderPlayers(); };
+  $('doneBtn').onclick = () => { syncNames(); S.setupDone = true; save(); sfx.tap(); go(renderHome); };
+}
+
+function renderTopics() {
+  screen = 'topics';
+  const p = pickedPlayer;
+  setBar(nameOf(p), () => go(renderHome));
+  main.innerHTML = `
+    <h1>${p.avatar} Hi ${esc(nameOf(p))}!</h1>
+    <p class="sub">Pick a topic for 10 questions.</p>
+    <div class="chips">${Object.entries(LEVELS).map(([k, l]) => `<button class="chip ${pickedLevel === k ? 'on' : ''}" data-k="${k}">${l.label}${k === p.level ? ' ✓' : ''}</button>`).join('')}</div>
+    <div class="tgrid" style="margin-top:12px">${TOPICS.map(t => {
+      const b = S.best[`${p.id}|${t.id}|${pickedLevel}`] || 0;
+      return `<button class="card tcard" style="--c:${t.colour}" data-t="${t.id}"><div class="ic">${t.icon}</div><div class="nm">${t.name}</div><div class="st" style="color:${b ? '#f0a020' : '#c9c4ee'}">${starStr(b)}</div></button>`;
+    }).join('')}</div>`;
+  main.querySelectorAll('[data-k]').forEach(b => b.onclick = () => { pickedLevel = b.dataset.k; renderTopics(); });
+  main.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { initAudio(); startSolo(p, b.dataset.t, pickedLevel); });
+}
+
+// ---------- solo quiz ----------
+function startSolo(player, topic, level) {
+  const used = new Set(), list = [];
+  for (let i = 0; i < CONFIG.soloQuestions; i++) list.push(drawOne(topic, level, used));
+  Q = { mode: 'solo', player, topic, level, list, i: 0, score: 0, streak: 0, results: [], answered: false };
+  go(renderQuestion);
+}
+
+function currentQ() { return Q.mode === 'solo' ? Q.list[Q.i] : Q.q; }
+function currentPlayer() { return Q.mode === 'solo' ? Q.player : playerById(Q.order[Q.turn]); }
+function currentLevel() { return Q.mode === 'solo' ? Q.level : currentPlayer().level; }
+
+function renderQuestion() {
+  screen = 'question';
+  const q = currentQ(), p = currentPlayer(), t = topicById(q.topic), lv = LEVELS[currentLevel()];
+  S.seen[q.id] = Date.now(); save();
+  const header = Q.mode === 'solo'
+    ? `<div class="progress">${Q.list.map((_, i) => `<span class="dot ${i < Q.i ? (Q.results[i] ? 'ok' : 'no') : i === Q.i ? 'now' : ''}"></span>`).join('')}</div>`
+    : `<div class="tiny">Round ${Q.round + 1} of ${Q.per}</div>`;
+  main.innerHTML = `
+    <div class="qhead">
+      <div class="who"><span class="av">${p.avatar}</span>${esc(nameOf(p))}</div>
+      ${header}
+      <div>${Q.mode === 'solo' ? `<b>${Q.score}</b> / ${Q.list.length}` : `<b>${Q.scores[p.id]}</b> pts`}${Q.streak >= 3 && Q.mode === 'solo' ? ` <span class="streak">🔥 ${Q.streak}</span>` : ''}</div>
+    </div>
+    <div class="card qcard">
+      <div class="qmeta"><span class="badge" style="background:${t.colour}">${t.icon} ${t.name}</span><span class="badge" style="background:${lv.colour}">${lv.label}</span></div>
+      <div class="qtext">${esc(q.text)}</div>
+      ${canSpeak ? `<div class="readrow"><button class="readbtn" id="readBtn">🔊 Read it to me</button></div>` : ''}
+      <div class="answers">${q.options.map((o, i) => `<button class="ans" data-i="${i}"><span class="l">${'ABCD'[i]}</span><span>${esc(o)}</span></button>`).join('')}</div>
+      <div id="fb"></div>
+    </div>`;
+  const readAll = () => speak(`${q.text}. ${q.options.map((o, i) => `${'ABCD'[i]}: ${o}.`).join(' ')}`);
+  if ($('readBtn')) $('readBtn').onclick = () => { initAudio(); readAll(); };
+  main.querySelectorAll('.ans').forEach(b => b.onclick = () => answer(+b.dataset.i));
+  setBar(Q.mode === 'solo' ? `Question ${Q.i + 1} of ${Q.list.length}` : 'Family Battle',
+    () => showLeaveConfirm(Q.mode === 'solo' ? "Leave this quiz? This round won't be saved." : "Stop the battle? Scores won't be kept."));
+  Q.answered = false;
+  if (p.read) setTimeout(readAll, 250);
+}
+
+const YES = ['Correct!', 'Brilliant!', 'Spot on!', 'Yes!', 'Nailed it!', 'Superb!', 'Well done!'];
+function answer(i) {
+  if (Q.answered) return;
+  Q.answered = true; initAudio();
+  const q = currentQ(), p = currentPlayer(), ok = q.options[i] === q.correct;
+  main.querySelectorAll('.ans').forEach((b, j) => {
+    b.disabled = true;
+    if (q.options[j] === q.correct) b.classList.add('correct');
+    else if (j === i) b.classList.add('wrong');
+    else b.classList.add('dim');
+  });
+  if (Q.mode === 'solo') {
+    Q.results[Q.i] = ok;
+    if (ok) { Q.score++; Q.streak++; } else Q.streak = 0;
+  } else if (ok) Q.scores[p.id]++;
+  ok ? sfx.right() : sfx.wrong();
+  const head = ok ? `✅ ${pick(YES)}${Q.mode === 'solo' && Q.streak >= 3 ? ` 🔥 ${Q.streak} in a row!` : ''}` : `❌ Not quite. The answer is: ${esc(q.correct)}`;
+  const last = Q.mode === 'solo' ? Q.i === Q.list.length - 1 : (Q.turn === Q.order.length - 1 && Q.round === Q.per - 1);
+  $('fb').innerHTML = `
+    <div class="feedback ${ok ? 'good' : 'bad'}">
+      <div class="head">${head}</div>
+      ${q.fact ? `<div class="fact">💡 ${esc(q.fact)}</div>` : ''}
+    </div>
+    <button class="big-btn" id="nextBtn">${last ? 'See results' : 'Next →'}</button>`;
+  $('nextBtn').onclick = () => { sfx.tap(); next(); };
+  if (p.read) speak(`${ok ? 'Correct!' : 'Not quite. The answer is ' + q.correct + '.'} ${q.fact || ''}`);
+  setTimeout(() => $('fb').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+  // update header score
+  const scoreEl = main.querySelector('.qhead > div:last-child');
+  if (scoreEl) scoreEl.innerHTML = Q.mode === 'solo' ? `<b>${Q.score}</b> / ${Q.list.length}${Q.streak >= 3 ? ` <span class="streak">🔥 ${Q.streak}</span>` : ''}` : `<b>${Q.scores[p.id]}</b> pts`;
+}
+
+function next() {
+  stopSpeaking();
+  if (Q.mode === 'solo') {
+    Q.i++;
+    if (Q.i >= Q.list.length) go(renderResults); else go(renderQuestion);
+  } else {
+    Q.turn++;
+    if (Q.turn >= Q.order.length) { Q.turn = 0; Q.round++; }
+    if (Q.round >= Q.per) go(renderFamilyResults); else go(renderHandoff);
+  }
+}
+
+function renderResults() {
+  screen = 'results';
+  const { player: p, topic, level, score, list } = Q, t = topicById(topic);
+  const stars = starsFor(score, list.length), key = `${p.id}|${topic}|${level}`, prev = S.best[key] || 0;
+  if (stars > prev) S.best[key] = stars;
+  save();
+  const pct = score / list.length;
+  const msg = pct === 1 ? 'Perfect score! 🏆' : pct >= 0.8 ? 'Brilliant!' : pct >= 0.6 ? 'Great effort!' : pct >= 0.4 ? 'Good try. Keep going!' : 'Every quiz makes you smarter. Try again!';
+  const wrong = list.filter((_, i) => !Q.results[i]);
+  setBar('Results', () => go(renderHome));
+  main.innerHTML = `
+    <h1>${p.avatar} ${esc(nameOf(p))}</h1>
+    <p class="sub">${t.icon} ${t.name} · ${LEVELS[level].label}</p>
+    <div class="score-big">${score} / ${list.length}</div>
+    <div class="stars-big" style="color:#f0a020">${starStr(stars)}</div>
+    <div class="msg">${msg}</div>
+    ${stars > prev && prev > 0 ? `<p class="sub">New best for this topic! 🎉</p>` : ''}
+    <div class="btn-row">
+      <button class="big-btn" id="againBtn">Play again</button>
+      <button class="big-btn alt" id="topicsBtn">Choose a topic</button>
+    </div>
+    ${wrong.length ? `<h2>Let's learn from these</h2>${wrong.map(q => `<div class="card review"><div class="q">${esc(q.text)}</div><div class="a">✅ ${esc(q.correct)}</div>${q.fact ? `<div class="f">💡 ${esc(q.fact)}</div>` : ''}</div>`).join('')}` : ''}`;
+  $('againBtn').onclick = () => startSolo(p, topic, level);
+  $('topicsBtn').onclick = () => go(renderTopics);
+  sfx.done();
+  if (pct >= 0.8) confetti();
+  if (p.read) speak(`You got ${score} out of ${list.length}. ${msg}`);
+}
+
+// ---------- family battle ----------
+function renderFamilySetup() {
+  screen = 'famSetup';
+  const F = S.fam || (S.fam = { players: S.players.map(p => p.id), topic: 'mixed', per: 5 });
+  F.players = F.players.filter(id => playerById(id));
+  if (F.players.length < 2) F.players = S.players.map(p => p.id);
+  setBar('Family Battle', () => go(renderHome));
+  main.innerHTML = `
+    <h1>⚔️ Family Battle</h1>
+    <p class="sub">Take turns. Everyone gets questions at their own level.</p>
+    <div class="label">Who's playing?</div>
+    <div class="grid" style="margin-top:8px">${S.players.map(p => `
+      <button class="card pcard ${F.players.includes(p.id) ? 'sel' : 'off'}" data-fp="${p.id}">
+        <div class="av">${p.avatar}</div><div class="nm ${p.name.trim() ? '' : 'empty'}">${esc(nameOf(p))}</div>
+        <span class="badge" style="background:${LEVELS[p.level].colour}">${LEVELS[p.level].label}</span>
+      </button>`).join('')}</div>
+    <div class="label">Topic</div>
+    <div class="chips">${TOPICS.map(t => `<button class="chip ${F.topic === t.id ? 'on' : ''}" data-ft="${t.id}">${t.icon} ${t.name}</button>`).join('')}</div>
+    <div class="label">Questions each</div>
+    <div class="chips">${[3, 5, 10].map(n => `<button class="chip ${F.per === n ? 'on' : ''}" data-fn="${n}">${n}</button>`).join('')}</div>
+    <button class="big-btn fam" id="startFam" ${F.players.length < 2 ? 'disabled' : ''}>Start the battle!</button>
+    ${F.players.length < 2 ? '<p class="note">Pick at least two players.</p>' : ''}`;
+  main.querySelectorAll('[data-fp]').forEach(b => b.onclick = () => {
+    const id = b.dataset.fp; F.players = F.players.includes(id) ? F.players.filter(x => x !== id) : [...F.players, id]; renderFamilySetup();
+  });
+  main.querySelectorAll('[data-ft]').forEach(b => b.onclick = () => { F.topic = b.dataset.ft; renderFamilySetup(); });
+  main.querySelectorAll('[data-fn]').forEach(b => b.onclick = () => { F.per = +b.dataset.fn; renderFamilySetup(); });
+  $('startFam').onclick = () => { initAudio(); save(); startFamily(); };
+}
+function startFamily() {
+  const F = S.fam;
+  const order = S.players.map(p => p.id).filter(id => F.players.includes(id));
+  Q = { mode: 'family', order, topic: F.topic, per: F.per, round: 0, turn: 0, scores: Object.fromEntries(order.map(id => [id, 0])), used: new Set(), q: null };
+  go(renderHandoff);
+}
+function scoreboardHTML(nowId) {
+  return `<div class="scoreboard">${Q.order.map(id => { const p = playerById(id); return `<span class="sb ${id === nowId ? 'now' : ''}">${p.avatar} ${esc(nameOf(p))}: <b>${Q.scores[id]}</b></span>`; }).join('')}</div>`;
+}
+function renderHandoff() {
+  screen = 'handoff';
+  const p = currentPlayer(), t = topicById(Q.topic);
+  setBar('Family Battle', () => showLeaveConfirm("Stop the battle? Scores won't be kept."));
+  main.innerHTML = `
+    <div class="card handoff">
+      <div class="tiny">Round ${Q.round + 1} of ${Q.per} · ${t.icon} ${t.name}</div>
+      <p class="sub" style="margin:10px 0 0">Pass to…</p>
+      <div class="av">${p.avatar}</div>
+      <div class="nm">${esc(nameOf(p))}</div>
+      <span class="badge" style="background:${LEVELS[p.level].colour}">${LEVELS[p.level].label}</span>
+      <button class="big-btn" id="readyBtn" style="max-width:340px;margin:18px auto 0">I'm ready!</button>
+    </div>
+    ${scoreboardHTML(p.id)}`;
+  $('readyBtn').onclick = () => {
+    sfx.tap();
+    Q.q = drawOne(Q.topic, p.level, Q.used);
+    go(renderQuestion);
+  };
+}
+function showLeaveConfirm(text) {
+  stopSpeaking();
+  if ($('leaveBar')) return;
+  main.insertAdjacentHTML('afterbegin', `<div class="confirm" id="leaveBar"><span>${text}</span><span><button id="stayBtn" style="background:#fff">Keep playing</button> <button id="leaveBtn" style="background:#e5484d;color:#fff">Leave</button></span></div>`);
+  window.scrollTo(0, 0);
+  $('stayBtn').onclick = () => $('leaveBar').remove();
+  $('leaveBtn').onclick = () => { Q = null; go(renderHome); };
+}
+function renderFamilyResults() {
+  screen = 'famResults';
+  const ranked = Q.order.map(id => ({ p: playerById(id), s: Q.scores[id] })).sort((a, b) => b.s - a.s);
+  const top = ranked[0].s, winners = ranked.filter(r => r.s === top);
+  let place = 0, lastScore = null;
+  const medals = ['🥇', '🥈', '🥉'];
+  setBar('Battle results', () => go(renderHome));
+  main.innerHTML = `
+    <h1>${winners.length === 1 ? `🏆 ${esc(nameOf(winners[0].p))} wins!` : `🤝 It's a draw!`}</h1>
+    <p class="sub">${winners.length > 1 ? listNames(winners.map(w => esc(nameOf(w.p)))) + ' share the crown!' : `${top} out of ${Q.per} correct.`}</p>
+    <div class="podium">${ranked.map((r, i) => {
+      if (r.s !== lastScore) { place = i; lastScore = r.s; }
+      return `<div class="card prow2"><div class="pl">${medals[place] || (place + 1)}</div><div class="av">${r.p.avatar}</div><div class="nm">${esc(nameOf(r.p))} <span class="badge" style="background:${LEVELS[r.p.level].colour}">${LEVELS[r.p.level].label}</span></div><div class="sc">${r.s}/${Q.per}</div></div>`;
+    }).join('')}</div>
+    <div class="btn-row">
+      <button class="big-btn fam" id="againFam">Rematch!</button>
+      <button class="big-btn alt" id="setupFam">Change settings</button>
+    </div>`;
+  $('againFam').onclick = () => startFamily();
+  $('setupFam').onclick = () => go(renderFamilySetup);
+  sfx.done(); confetti();
+}
+
+const listNames = a => a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1];
+
+// ---------- confetti ----------
+let confettiRun = 0;
+function stopConfetti() { confettiRun++; const c = $('confetti'); c.getContext('2d').clearRect(0, 0, c.width, c.height); }
+function confetti() {
+  const run = ++confettiRun;
+  const c = $('confetti'), g = c.getContext('2d'), d = Math.min(window.devicePixelRatio || 1, 2);
+  c.width = innerWidth * d; c.height = innerHeight * d; g.setTransform(d, 0, 0, d, 0, 0);
+  const cols = ['#5b4bdb', '#ffd166', '#ff5c8a', '#1fa865', '#2f8fe0', '#ff8a4c'];
+  const bits = Array.from({ length: 140 }, () => ({ x: Math.random() * innerWidth, y: -20 - Math.random() * innerHeight * 0.5, vx: (Math.random() - 0.5) * 120, vy: 120 + Math.random() * 220, r: Math.random() * 6, vr: (Math.random() - 0.5) * 8, c: pick(cols), w: 6 + Math.random() * 6 }));
+  let last = performance.now(), t = 0;
+  (function step(now) {
+    if (run !== confettiRun) return;
+    const dt = Math.min(0.05, (now - last) / 1000); last = now; t += dt;
+    g.clearRect(0, 0, innerWidth, innerHeight);
+    for (const b of bits) { b.x += b.vx * dt; b.y += b.vy * dt; b.r += b.vr * dt; g.save(); g.translate(b.x, b.y); g.rotate(b.r); g.fillStyle = b.c; g.fillRect(-b.w / 2, -3, b.w, 6); g.restore(); }
+    if (t < 3.5) requestAnimationFrame(step); else g.clearRect(0, 0, innerWidth, innerHeight);
+  })(last);
+}
+
+// ---------- start ----------
+function showSound() { $('soundBtn').textContent = S.sound ? '🔊' : '🔇'; }
+$('soundBtn').onclick = () => { S.sound = !S.sound; if (!S.sound) stopSpeaking(); save(); showSound(); initAudio(); };
+showSound();
+if (canSpeak) { try { speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = () => {}; } catch (e) {} }
+document.addEventListener('visibilitychange', () => { if (document.hidden) { stopSpeaking(); save(); } });
+if (S.setupDone) renderHome(); else renderPlayers();
+
+try {
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+} catch (e) {}
+</script>
+</body>
+</html>
