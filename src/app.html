@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Noto+Sans+Hebrew:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root { --ink: #26215c; --accent: #5b4bdb; --accent-d: #3f31b0; --good: #1fa865; --bad: #e5484d; --line: #e4e1ff; }
   * { box-sizing: border-box; }
@@ -148,6 +148,15 @@
   .prow2 .sc { font-size: 24px; font-weight: 700; }
   .note { font-size: 14px; opacity: 0.7; text-align: center; margin-top: 16px; line-height: 1.4; }
   #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 50; }
+
+  /* Hebrew: its own font (with nikud) and right-to-left inside English sentences */
+  .he { font-family: 'Noto Sans Hebrew', 'Arial Hebrew', Arial, sans-serif; font-size: 1.08em; line-height: 1.45; }
+  .qtext .he { font-size: 1.12em; }
+  .ans .he { font-size: 1.12em; }
+  .ans span[dir="rtl"] { text-align: right; }
+  .tcard .hes { font-size: 15px; opacity: 0.7; margin-top: 1px; }
+  .tcard .tiny { margin-top: 2px; }
+  .tcard.all { background: #f3f1ff; }
 </style>
 </head>
 <body>
@@ -164,6 +173,8 @@
 //  QUESTIONS: each one is [question, right answer, wrong, wrong, wrong, fact]
 // =====================================================================
 const QB = {};
+// Topics with sections (like Ivrit): QS.topic.level = [{ id, name, icon, quiet, q: [questions] }]
+const QS = {};
 /*QUESTIONS*/
 
 /*MATHS*/
@@ -185,6 +196,7 @@ const TOPICS = [
   { id: 'history',   name: 'History',          icon: '🏰', colour: '#c0843a' },
   { id: 'space',     name: 'Space',            icon: '🚀', colour: '#5a4fcf' },
   { id: 'words',     name: 'Words',            icon: '📚', colour: '#e05a8a' },
+  { id: 'ivrit',     name: 'Ivrit',            icon: '🇮🇱', colour: '#1550c8', he: 'עִבְרִית' },
   { id: 'maths',     name: 'Maths',            icon: '🔢', colour: '#f0a020' },
   { id: 'sport',     name: 'Sport',            icon: '⚽', colour: '#2e9e4a' },
   { id: 'mixed',     name: 'Mixed Bag',        icon: '🎲', colour: '#7a6fa0' },
@@ -198,6 +210,40 @@ const shuffle = a => { const b = a.slice(); for (let i = b.length - 1; i > 0; i-
 const pick = a => a[Math.floor(Math.random() * a.length)];
 const uid = () => Math.random().toString(36).slice(2, 9);
 const topicById = id => TOPICS.find(t => t.id === id);
+
+// ---------- Hebrew inside English text ----------
+// Hebrew runs right-to-left, so each bit of Hebrew in an English sentence is wrapped in its own
+// right-to-left box. Text with no English letters at all is shown right-to-left as a whole.
+// Tip for writing questions: put Hebrew sentences in curly quotes “like this”, with their own
+// punctuation inside the quotes.
+const HE_LETTER = /[א-ת]/, LATIN = /[A-Za-z]/;
+const HE_RUN = /[א-תיִ-ﭏ](?:[֑-״יִ-ﭏ0-9  ,.:;!?_…%-]*[֑-״יִ-ﭏ0-9…])?/g;
+function heRuns(s) {
+  const out = []; let m;
+  HE_RUN.lastIndex = 0;
+  while ((m = HE_RUN.exec(s))) {
+    let a = m.index, b = a + m[0].length;
+    const tail = /^[ _.?!,:;…]*(?=[”’])/.exec(s.slice(b)); if (tail) b += tail[0].length; // punctuation before a closing quote
+    const head = /[“‘]([ _…]+)$/.exec(s.slice(0, a)); if (head) a -= head[1].length;        // a gap right after an opening quote
+    if (s[a - 1] === '“' && s[b] === '”') { a--; b++; }                                   // quoted Hebrew keeps its quotes, so they wrap the right way
+    out.push([a, b]);
+    HE_RUN.lastIndex = b;
+  }
+  return out;
+}
+const textDir = s => LATIN.test(s) ? 'ltr' : HE_LETTER.test(s) ? 'rtl' : 'ltr';
+function fmt(s) {
+  s = String(s);
+  if (!HE_LETTER.test(s)) return esc(s);
+  if (!LATIN.test(s)) return `<span class="he" dir="rtl">${esc(s)}</span>`;
+  let out = '', last = 0;
+  for (const [a, b] of heRuns(s)) {
+    const he = s.slice(a, b).replace(/^“|”$/g, '"'); // curly quotes would look back-to-front inside right-to-left text
+    out += esc(s.slice(last, a)) + `<bdi class="he" dir="rtl">${esc(he)}</bdi>`;
+    last = b;
+  }
+  return out + esc(s.slice(last));
+}
 
 // ---------- saving (on this device only) ----------
 const KEY = 'quizquest.v1';
@@ -241,35 +287,72 @@ const sfx = {
 };
 const canSpeak = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
 const stripEmoji = s => s.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}\u{2B50}\u{2B55}]/gu, '').replace(/\s+/g, ' ').trim();
-function speak(text) {
+let voiceEN = null, voiceHE = null;
+function loadVoices() {
+  if (!canSpeak) return;
+  try {
+    const vs = speechSynthesis.getVoices();
+    voiceEN = vs.find(v => /en-GB/i.test(v.lang)) || vs.find(v => /^en/i.test(v.lang)) || null;
+    voiceHE = vs.find(v => /^(he|iw)\b/i.test(v.lang)) || null;
+  } catch (e) {}
+}
+// English is read with an English voice and any Hebrew with a Hebrew voice (if the device has one).
+// opts.skipHebrew: leave the Hebrew out. opts.onlyHebrew: read just the Hebrew, a bit slower.
+function speak(text, opts) {
+  opts = opts || {};
   if (!canSpeak || !S.sound) return;
   try {
     speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(stripEmoji(text).replace(/−/g, 'minus ').replace(/×/g, 'times').replace(/÷/g, 'divided by').replace(/√/g, 'the square root of '));
-    const voices = speechSynthesis.getVoices();
-    const v = voices.find(v => /en-GB/i.test(v.lang)) || voices.find(v => /^en/i.test(v.lang));
-    if (v) u.voice = v;
-    u.rate = 0.92; u.lang = (v && v.lang) || 'en-GB';
-    speechSynthesis.speak(u);
+    loadVoices();
+    const s = String(text), parts = [];
+    let last = 0;
+    for (const [a, b] of HE_LETTER.test(s) ? heRuns(s) : []) { parts.push({ t: s.slice(last, a) }, { t: s.slice(a, b), he: true }); last = b; }
+    parts.push({ t: s.slice(last) });
+    for (const p of parts) {
+      let u;
+      if (p.he) {
+        if (opts.skipHebrew || (!voiceHE && !opts.onlyHebrew)) continue;
+        u = new SpeechSynthesisUtterance(p.t);
+        if (voiceHE) u.voice = voiceHE;
+        u.lang = (voiceHE && voiceHE.lang) || 'he-IL';
+        u.rate = opts.onlyHebrew ? 0.8 : 0.88;
+      } else {
+        if (opts.onlyHebrew) continue;
+        const t = stripEmoji(p.t).replace(/−/g, 'minus ').replace(/×/g, 'times').replace(/÷/g, 'divided by').replace(/√/g, 'the square root of ');
+        if (!/[A-Za-z0-9]/.test(t)) continue;
+        u = new SpeechSynthesisUtterance(t);
+        if (voiceEN) u.voice = voiceEN;
+        u.lang = (voiceEN && voiceEN.lang) || 'en-GB';
+        u.rate = 0.92;
+      }
+      speechSynthesis.speak(u);
+    }
   } catch (e) {}
 }
 function stopSpeaking() { if (canSpeak) try { speechSynthesis.cancel(); } catch (e) {} }
 
 // ---------- question picking ----------
-function makeQuestion(raw, id, topic) {
+function makeQuestion(raw, id, topic, sec) {
   const [text, correct, w1, w2, w3, fact] = raw;
-  return { id, topic, text, correct, fact, options: shuffle([correct, w1, w2, w3]) };
+  return { id, topic, sec: sec || null, text, correct, fact, options: shuffle([correct, w1, w2, w3]) };
 }
-function poolFor(topic, level) {
+const hasSections = (topic, level) => !!(QS[topic] && QS[topic][level] && QS[topic][level].length);
+const sectionOf = (topic, level, id) => (id && hasSections(topic, level) && QS[topic][level].find(s => s.id === id)) || null;
+const bestKey = (pid, topic, section, level) => `${pid}|${topic}${section ? '/' + section : ''}|${level}`;
+function poolFor(topic, level, section) {
+  if (hasSections(topic, level)) {
+    return QS[topic][level].filter(s => !section || s.id === section)
+      .flatMap(s => s.q.map((raw, i) => ({ raw, id: `${topic}.${level}.${s.id}.${i}`, sec: s })));
+  }
   if (!QB[topic] || !QB[topic][level]) return [];
   return QB[topic][level].map((raw, i) => ({ raw, id: `${topic}.${level}.${i}` }));
 }
 // least-recently-seen first, so questions don't repeat until you've seen them all
-function drawFromPool(topic, level, used) {
-  const pool = poolFor(topic, level).filter(x => !used.has(x.id));
+function drawFromPool(topic, level, used, section) {
+  const pool = poolFor(topic, level, section).filter(x => !used.has(x.id));
   if (!pool.length) return null;
   const best = shuffle(pool).sort((a, b) => (S.seen[a.id] || 0) - (S.seen[b.id] || 0))[0];
-  return makeQuestion(best.raw, best.id, topic);
+  return makeQuestion(best.raw, best.id, topic, best.sec);
 }
 function drawMaths(level, used) {
   for (let i = 0; i < 30; i++) {
@@ -278,10 +361,11 @@ function drawMaths(level, used) {
   }
   const raw = MATHS.generate(level); return makeQuestion(raw, 'maths:' + raw[0] + Math.random(), 'maths');
 }
-function drawOne(topic, level, used) {
+function drawOne(topic, level, used, section) {
   let t = topic;
   if (t === 'mixed') t = pick(TOPICS.filter(x => x.id !== 'mixed')).id;
-  let q = t === 'maths' ? drawMaths(level, used) : drawFromPool(t, level, used);
+  let q = t === 'maths' ? drawMaths(level, used) : drawFromPool(t, level, used, section);
+  if (!q && section) q = drawFromPool(t, level, used); // section used up: rest of the same topic
   if (!q) { // ran out in this topic: fall back to any topic
     for (const tt of shuffle(TOPICS.filter(x => x.id !== 'mixed' && x.id !== 'maths'))) { q = drawFromPool(tt.id, level, used); if (q) break; }
     if (!q) q = drawMaths(level, used);
@@ -291,7 +375,7 @@ function drawOne(topic, level, used) {
 }
 
 // ---------- screens ----------
-let screen = 'home', Q = null, pickedPlayer = null, pickedLevel = null;
+let screen = 'home', Q = null, pickedPlayer = null, pickedLevel = null, pickedTopic = null;
 const main = $('main');
 function setBar(title, back) {
   $('barTitle').textContent = title;
@@ -369,18 +453,44 @@ function renderTopics() {
     <p class="sub">Pick a topic for 10 questions.</p>
     <div class="chips">${Object.entries(LEVELS).map(([k, l]) => `<button class="chip ${pickedLevel === k ? 'on' : ''}" data-k="${k}">${l.label}${k === p.level ? ' ✓' : ''}</button>`).join('')}</div>
     <div class="tgrid" style="margin-top:12px">${TOPICS.map(t => {
-      const b = S.best[`${p.id}|${t.id}|${pickedLevel}`] || 0;
-      return `<button class="card tcard" style="--c:${t.colour}" data-t="${t.id}"><div class="ic">${t.icon}</div><div class="nm">${t.name}</div><div class="st" style="color:${b ? '#f0a020' : '#c9c4ee'}">${starStr(b)}</div></button>`;
+      const b = S.best[bestKey(p.id, t.id, null, pickedLevel)] || 0;
+      return `<button class="card tcard" style="--c:${t.colour}" data-t="${t.id}"><div class="ic">${t.icon}</div><div class="nm">${t.name}</div>${t.he ? `<div class="hes">${fmt(t.he)}</div>` : ''}<div class="st" style="color:${b ? '#f0a020' : '#c9c4ee'}">${starStr(b)}</div></button>`;
     }).join('')}</div>`;
   main.querySelectorAll('[data-k]').forEach(b => b.onclick = () => { pickedLevel = b.dataset.k; renderTopics(); });
-  main.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { initAudio(); startSolo(p, b.dataset.t, pickedLevel); });
+  main.querySelectorAll('[data-t]').forEach(b => b.onclick = () => {
+    initAudio();
+    if (hasSections(b.dataset.t, pickedLevel)) { sfx.tap(); pickedTopic = b.dataset.t; go(renderSections); }
+    else startSolo(p, b.dataset.t, pickedLevel);
+  });
+}
+
+// topics like Ivrit have sections: practise one, or a bit of everything
+function renderSections() {
+  screen = 'sections';
+  const p = pickedPlayer, t = topicById(pickedTopic), lv = pickedLevel;
+  if (!hasSections(t.id, lv)) { go(renderTopics); return; }
+  const secs = QS[t.id][lv], note = QS[t.id].notes && QS[t.id].notes[lv];
+  const total = secs.reduce((n, s) => n + s.q.length, 0);
+  const card = (sid, icon, name, n, extra) => {
+    const b = S.best[bestKey(p.id, t.id, sid, lv)] || 0;
+    return `<button class="card tcard ${extra || ''}" style="--c:${t.colour}" data-s="${sid || ''}"><div class="ic">${icon}</div><div class="nm">${esc(name)}</div><div class="tiny">${n} questions</div><div class="st" style="color:${b ? '#f0a020' : '#c9c4ee'}">${starStr(b)}</div></button>`;
+  };
+  setBar(`${t.name}`, () => go(renderTopics));
+  main.innerHTML = `
+    <h1>${t.icon} ${esc(t.name)}${t.he ? ` · ${fmt(t.he)}` : ''}</h1>
+    <p class="sub">${p.avatar} ${esc(nameOf(p))}: pick a section, or try a bit of everything.</p>
+    <div class="chips">${Object.entries(LEVELS).map(([k, l]) => `<button class="chip ${lv === k ? 'on' : ''}" data-k="${k}">${l.label}${k === p.level ? ' ✓' : ''}</button>`).join('')}</div>
+    ${note ? `<p class="note" style="margin:4px 0 14px">${fmt(note)}</p>` : ''}
+    <div class="tgrid">${card(null, '🎲', 'A bit of everything', total, 'all')}${secs.map(s => card(s.id, s.icon, s.name, s.q.length)).join('')}</div>`;
+  main.querySelectorAll('[data-k]').forEach(b => b.onclick = () => { pickedLevel = b.dataset.k; renderSections(); });
+  main.querySelectorAll('[data-s]').forEach(b => b.onclick = () => { initAudio(); startSolo(p, t.id, lv, b.dataset.s || null); });
 }
 
 // ---------- solo quiz ----------
-function startSolo(player, topic, level) {
+function startSolo(player, topic, level, section) {
   const used = new Set(), list = [];
-  for (let i = 0; i < CONFIG.soloQuestions; i++) list.push(drawOne(topic, level, used));
-  Q = { mode: 'solo', player, topic, level, list, i: 0, score: 0, streak: 0, results: [], answered: false };
+  for (let i = 0; i < CONFIG.soloQuestions; i++) list.push(drawOne(topic, level, used, section));
+  Q = { mode: 'solo', player, topic, level, section: section || null, list, i: 0, score: 0, streak: 0, results: [], answered: false };
   go(renderQuestion);
 }
 
@@ -391,6 +501,7 @@ function currentLevel() { return Q.mode === 'solo' ? Q.level : currentPlayer().l
 function renderQuestion() {
   screen = 'question';
   const q = currentQ(), p = currentPlayer(), t = topicById(q.topic), lv = LEVELS[currentLevel()];
+  const quiet = !!(q.sec && q.sec.quiet);
   S.seen[q.id] = Date.now(); save();
   const header = Q.mode === 'solo'
     ? `<div class="progress">${Q.list.map((_, i) => `<span class="dot ${i < Q.i ? (Q.results[i] ? 'ok' : 'no') : i === Q.i ? 'now' : ''}"></span>`).join('')}</div>`
@@ -402,14 +513,16 @@ function renderQuestion() {
       <div>${Q.mode === 'solo' ? `<b>${Q.score}</b> / ${Q.list.length}` : `<b>${Q.scores[p.id]}</b> pts`}${Q.streak >= 3 && Q.mode === 'solo' ? ` <span class="streak">🔥 ${Q.streak}</span>` : ''}</div>
     </div>
     <div class="card qcard">
-      <div class="qmeta"><span class="badge" style="background:${t.colour}">${t.icon} ${t.name}</span><span class="badge" style="background:${lv.colour}">${lv.label}</span></div>
-      <div class="qtext">${esc(q.text)}</div>
-      ${canSpeak ? `<div class="readrow"><button class="readbtn" id="readBtn">🔊 Read it to me</button></div>` : ''}
-      <div class="answers">${q.options.map((o, i) => `<button class="ans" data-i="${i}"><span class="l">${'ABCD'[i]}</span><span>${esc(o)}</span></button>`).join('')}</div>
+      <div class="qmeta"><span class="badge" style="background:${t.colour}">${t.icon} ${t.name}</span>${q.sec ? `<span class="badge" style="background:#7d78a3">${q.sec.icon} ${esc(q.sec.name)}</span>` : ''}<span class="badge" style="background:${lv.colour}">${lv.label}</span></div>
+      <div class="qtext">${fmt(q.text)}</div>
+      ${canSpeak ? `<div class="readrow"><button class="readbtn" id="readBtn">🔊 Read it to me</button>${q.sec && !quiet && HE_LETTER.test(q.text) ? `<button class="readbtn" id="heBtn">🗣️ Hear the Hebrew</button>` : ''}</div>` : ''}
+      <div class="answers">${q.options.map((o, i) => `<button class="ans" data-i="${i}"><span class="l">${'ABCD'[i]}</span><span dir="${textDir(o)}">${fmt(o)}</span></button>`).join('')}</div>
       <div id="fb"></div>
     </div>`;
-  const readAll = () => speak(`${q.text}. ${q.options.map((o, i) => `${'ABCD'[i]}: ${o}.`).join(' ')}`);
+  // in "quiet" sections (reading letters), hearing the Hebrew would give the answer away, so it's only said after answering
+  const readAll = () => speak(`${q.text}. ${q.options.map((o, i) => quiet && !LATIN.test(o) ? '' : `${'ABCD'[i]}: ${o}.`).join(' ')}`, { skipHebrew: quiet && !Q.answered });
   if ($('readBtn')) $('readBtn').onclick = () => { initAudio(); readAll(); };
+  if ($('heBtn')) $('heBtn').onclick = () => { initAudio(); speak(q.text, { onlyHebrew: true }); };
   main.querySelectorAll('.ans').forEach(b => b.onclick = () => answer(+b.dataset.i));
   setBar(Q.mode === 'solo' ? `Question ${Q.i + 1} of ${Q.list.length}` : 'Family Battle',
     () => showLeaveConfirm(Q.mode === 'solo' ? "Leave this quiz? This round won't be saved." : "Stop the battle? Scores won't be kept."));
@@ -433,17 +546,20 @@ function answer(i) {
     if (ok) { Q.score++; Q.streak++; } else Q.streak = 0;
   } else if (ok) Q.scores[p.id]++;
   ok ? sfx.right() : sfx.wrong();
-  const head = ok ? `✅ ${pick(YES)}${Q.mode === 'solo' && Q.streak >= 3 ? ` 🔥 ${Q.streak} in a row!` : ''}` : `❌ Not quite. The answer is: ${esc(q.correct)}`;
+  const head = ok ? `✅ ${pick(YES)}${Q.mode === 'solo' && Q.streak >= 3 ? ` 🔥 ${Q.streak} in a row!` : ''}` : `❌ Not quite. The answer is: ${fmt(q.correct)}`;
   const last = Q.mode === 'solo' ? Q.i === Q.list.length - 1 : (Q.turn === Q.order.length - 1 && Q.round === Q.per - 1);
+  const sayIt = canSpeak && q.sec && (HE_LETTER.test(q.text) || HE_LETTER.test(q.correct));
   $('fb').innerHTML = `
     <div class="feedback ${ok ? 'good' : 'bad'}">
       <div class="head">${head}</div>
-      ${q.fact ? `<div class="fact">💡 ${esc(q.fact)}</div>` : ''}
+      ${q.fact ? `<div class="fact">💡 ${fmt(q.fact)}</div>` : ''}
+      ${sayIt ? `<div class="readrow" style="justify-content:flex-start"><button class="readbtn" id="sayBtn">🗣️ Hear it in Hebrew</button></div>` : ''}
     </div>
     <button class="big-btn" id="nextBtn">${last ? 'See results' : 'Next →'}</button>`;
   $('nextBtn').onclick = () => { sfx.tap(); next(); };
+  if ($('sayBtn')) $('sayBtn').onclick = () => { initAudio(); speak(`${q.text} ${q.correct}`, { onlyHebrew: true }); };
   if (p.read) speak(`${ok ? 'Correct!' : 'Not quite. The answer is ' + q.correct + '.'} ${q.fact || ''}`);
-  setTimeout(() => $('fb').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+  setTimeout(() => { const f = $('fb'); if (f) f.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 50);
   // update header score
   const scoreEl = main.querySelector('.qhead > div:last-child');
   if (scoreEl) scoreEl.innerHTML = Q.mode === 'solo' ? `<b>${Q.score}</b> / ${Q.list.length}${Q.streak >= 3 ? ` <span class="streak">🔥 ${Q.streak}</span>` : ''}` : `<b>${Q.scores[p.id]}</b> pts`;
@@ -463,8 +579,9 @@ function next() {
 
 function renderResults() {
   screen = 'results';
-  const { player: p, topic, level, score, list } = Q, t = topicById(topic);
-  const stars = starsFor(score, list.length), key = `${p.id}|${topic}|${level}`, prev = S.best[key] || 0;
+  const { player: p, topic, level, section, score, list } = Q, t = topicById(topic), sec = sectionOf(topic, level, section);
+  const stars = starsFor(score, list.length), key = bestKey(p.id, topic, section, level), prev = S.best[key] || 0;
+  const bySection = hasSections(topic, level);
   if (stars > prev) S.best[key] = stars;
   save();
   const pct = score / list.length;
@@ -473,18 +590,18 @@ function renderResults() {
   setBar('Results', () => go(renderHome));
   main.innerHTML = `
     <h1>${p.avatar} ${esc(nameOf(p))}</h1>
-    <p class="sub">${t.icon} ${t.name} · ${LEVELS[level].label}</p>
+    <p class="sub">${t.icon} ${t.name}${sec ? ` · ${sec.icon} ${esc(sec.name)}` : ''} · ${LEVELS[level].label}</p>
     <div class="score-big">${score} / ${list.length}</div>
     <div class="stars-big" style="color:#f0a020">${starStr(stars)}</div>
     <div class="msg">${msg}</div>
     ${stars > prev && prev > 0 ? `<p class="sub">New best for this topic! 🎉</p>` : ''}
     <div class="btn-row">
       <button class="big-btn" id="againBtn">Play again</button>
-      <button class="big-btn alt" id="topicsBtn">Choose a topic</button>
+      <button class="big-btn alt" id="topicsBtn">${bySection ? 'Choose a section' : 'Choose a topic'}</button>
     </div>
-    ${wrong.length ? `<h2>Let's learn from these</h2>${wrong.map(q => `<div class="card review"><div class="q">${esc(q.text)}</div><div class="a">✅ ${esc(q.correct)}</div>${q.fact ? `<div class="f">💡 ${esc(q.fact)}</div>` : ''}</div>`).join('')}` : ''}`;
-  $('againBtn').onclick = () => startSolo(p, topic, level);
-  $('topicsBtn').onclick = () => go(renderTopics);
+    ${wrong.length ? `<h2>Let's learn from these</h2>${wrong.map(q => `<div class="card review"><div class="q">${fmt(q.text)}</div><div class="a">✅ ${fmt(q.correct)}</div>${q.fact ? `<div class="f">💡 ${fmt(q.fact)}</div>` : ''}</div>`).join('')}` : ''}`;
+  $('againBtn').onclick = () => startSolo(p, topic, level, section);
+  $('topicsBtn').onclick = () => { pickedPlayer = p; pickedLevel = level; pickedTopic = topic; go(bySection ? renderSections : renderTopics); };
   sfx.done();
   if (pct >= 0.8) confetti();
   if (p.read) speak(`You got ${score} out of ${list.length}. ${msg}`);
@@ -604,7 +721,7 @@ function confetti() {
 function showSound() { $('soundBtn').textContent = S.sound ? '🔊' : '🔇'; }
 $('soundBtn').onclick = () => { S.sound = !S.sound; if (!S.sound) stopSpeaking(); save(); showSound(); initAudio(); };
 showSound();
-if (canSpeak) { try { speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = () => {}; } catch (e) {} }
+if (canSpeak) { try { loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; } catch (e) {} }
 document.addEventListener('visibilitychange', () => { if (document.hidden) { stopSpeaking(); save(); } });
 if (S.setupDone) renderHome(); else renderPlayers();
 

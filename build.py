@@ -4,8 +4,10 @@ from pathlib import Path
 
 here = Path(__file__).parent
 src = here / "src"
+QUESTION_FILES = ["q1.js", "q2.js", "q3.js", "ivrit-young.js", "ivrit-gcse.js", "ivrit-adult.js"]
+
 app = (src / "app.html").read_text(encoding="utf-8")
-questions = "\n".join((src / f).read_text(encoding="utf-8") for f in ["q1.js", "q2.js", "q3.js"])
+questions = "\n".join((src / f).read_text(encoding="utf-8") for f in QUESTION_FILES)
 maths = (src / "maths.js").read_text(encoding="utf-8")
 assert "/*QUESTIONS*/" in app and "/*MATHS*/" in app
 out = app.replace("/*QUESTIONS*/", questions).replace("/*MATHS*/", maths)

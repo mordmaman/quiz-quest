@@ -1,7 +1,7 @@
 // Lets the game install as an app and work offline.
 // Network first, so new versions show up straight away when online;
 // falls back to the saved copy when there's no internet.
-const CACHE = 'quiz-quest-v1';
+const CACHE = 'quiz-quest-v2';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {

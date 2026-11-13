@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Noto+Sans+Hebrew:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root { --ink: #26215c; --accent: #5b4bdb; --accent-d: #3f31b0; --good: #1fa865; --bad: #e5484d; --line: #e4e1ff; }
   * { box-sizing: border-box; }
@@ -148,6 +148,15 @@
   .prow2 .sc { font-size: 24px; font-weight: 700; }
   .note { font-size: 14px; opacity: 0.7; text-align: center; margin-top: 16px; line-height: 1.4; }
   #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 50; }
+
+  /* Hebrew: its own font (with nikud) and right-to-left inside English sentences */
+  .he { font-family: 'Noto Sans Hebrew', 'Arial Hebrew', Arial, sans-serif; font-size: 1.08em; line-height: 1.45; }
+  .qtext .he { font-size: 1.12em; }
+  .ans .he { font-size: 1.12em; }
+  .ans span[dir="rtl"] { text-align: right; }
+  .tcard .hes { font-size: 15px; opacity: 0.7; margin-top: 1px; }
+  .tcard .tiny { margin-top: 2px; }
+  .tcard.all { background: #f3f1ff; }
 </style>
 </head>
 <body>
@@ -164,6 +173,8 @@
 //  QUESTIONS: each one is [question, right answer, wrong, wrong, wrong, fact]
 // =====================================================================
 const QB = {};
+// Topics with sections (like Ivrit): QS.topic.level = [{ id, name, icon, quiet, q: [questions] }]
+const QS = {};
 // Each question: [question, correct answer, wrong 1, wrong 2, wrong 3, "did you know?" fact]
 QB.animals = {
   k7: [
@@ -662,6 +673,511 @@ QB.sport = {
   ],
 };
 
+// =====================================================================
+//  IVRIT (Modern Hebrew): Age 7 and Age 11. Hebrew here has nikud (vowel points) to help reading.
+//  Each level is a list of sections. Each question is the usual
+//  [question, right answer, wrong, wrong, wrong, "did you know?" fact].
+//  Put Hebrew sentences inside English text in curly quotes “like this”.
+//  quiet: true = "Read it to me" doesn't say the Hebrew before you answer (it would give it away).
+// =====================================================================
+QS.ivrit = QS.ivrit || {};
+QS.ivrit.notes = QS.ivrit.notes || {};
+QS.ivrit.notes.k7 = "The Hebrew has nikud (vowel dots) to help with reading. Tap 🗣️ to hear it said.";
+QS.ivrit.notes.k11 = "The Hebrew has nikud (vowel dots) to help with reading. Tap 🗣️ to hear it said.";
+
+QS.ivrit.k7 = [
+  { id: "alefbet", name: "Alef-bet", icon: "🔤", quiet: true, q: [
+    ["Which letter comes first in the Alef-bet?", "א", "ב", "ת", "מ", "Alef (א) comes first and Tav (ת) comes last. There are 22 letters in the Alef-bet."],
+    ["Which letter comes last in the Alef-bet?", "ת", "א", "ש", "ק", "Tav (ת) is last. In English we say 'from A to Z'. In Hebrew it's “מֵאָלֶף עַד תָּו” — from Alef to Tav!"],
+    ["How many letters are there in the Alef-bet?", "22", "26", "10", "18", "There are 22 letters in the Alef-bet. The English alphabet has 26."],
+    ["What is this letter called?\nש", "Shin", "Samech", "Tsadi", "Lamed", "Shin has three arms, like a crown. With a dot on the right, שׁ says 'sh', like in שָׁלוֹם."],
+    ["What sound does this letter make?\nמ", "'m' as in mum", "'n' as in nose", "'s' as in sun", "'l' as in lion", "That's Mem! It starts the word מַיִם (mayim), which means water. 💧"],
+    ["What sound does this letter make?\nשׂ", "'s' as in sun", "'sh' as in ship", "'t' as in tap", "'k' as in kite", "With the dot on the LEFT it's Sin and says 's'. With the dot on the RIGHT it's Shin (שׁ) and says 'sh'."],
+    ["Which letter makes the 'b' sound, as in ball?", "בּ", "ד", "ל", "ר", "With a dot inside, בּ says 'b'. Without the dot, ב says 'v'!"],
+    ["Which letter makes the 'g' sound, as in garden?", "ג", "ז", "ח", "ט", "That's Gimmel! It starts the word גַּן (gan), which means garden or nursery."],
+    ["Which of these is a 'final letter' that only goes at the end of a word?", "ם", "מ", "ב", "ל", "Five letters change shape at the end of a word: כ → ך · מ → ם · נ → ן · פ → ף · צ → ץ"],
+    ["Which one says 'ba'?", "בָּ", "בִּי", "בּוּ", "בּוֹ", "The little T-shape under the letter is a kamatz. It says 'a', so בָּ says 'ba'."],
+    ["Which one says 'boo'?", "בּוּ", "בָּ", "בִּי", "בּוֹ", "A vav with a dot in its middle (וּ) says 'oo'. A vav with a dot on top (וֹ) says 'o'."],
+    ["Which one says 'bee'? 🐝", "בִּי", "בּוּ", "בָּ", "בֶּ", "One dot under a letter is a chirik. It says 'ee', so בִּי says 'bee'."],
+    ["Which two letters look almost the same?", "ד and ר", "א and ת", "ל and מ", "ש and ק", "Dalet (ד) has a sharp corner sticking out at the top. Resh (ר) is smooth and round."],
+    ["What does this word say?\nאַבָּא", "Abba (Dad)", "Ima (Mum)", "Saba (Grandpa)", "Ach (brother)", "אַבָּא (Abba) means Dad. Can you read אִמָּא? It says Ima: Mum!"],
+    ["Which word says 'Ima' (Mum)?", "אִמָּא", "אַבָּא", "סָבָא", "סַבְתָּא", "אִמָּא is Mum, סָבָא (Saba) is Grandpa and סַבְתָּא (Savta) is Grandma."],
+    ["Which way do you read Hebrew?", "Right to left ⬅️", "Left to right ➡️", "Top to bottom ⬇️", "Bottom to top ⬆️", "Hebrew goes from right to left, so Hebrew books open from the other end to English books!"],
+  ]},
+  { id: "words", name: "First words", icon: "🐶", q: [
+    ["What does כֶּלֶב mean?", "Dog 🐶", "Cat 🐱", "Horse 🐴", "Fish 🐟", "כֶּלֶב (kelev) is a dog. A puppy is a כְּלַבְלַב (klavlav)!"],
+    ["What does חָתוּל mean?", "Cat 🐱", "Dog 🐶", "Mouse 🐭", "Bird 🐦", "חָתוּל (chatul) is a cat. A kitten is a חֲתַלְתּוּל (chataltul). Try saying that fast!"],
+    ["What does סוּס mean?", "Horse 🐴", "Cow 🐮", "Sheep 🐑", "Lion 🦁", "סוּס (soos) is a horse. A zebra is a זֶבְּרָה, just like in English!"],
+    ["What does דָּג mean?", "Fish 🐟", "Frog 🐸", "Duck 🦆", "Snake 🐍", "דָּג (dag) is a fish. Lots of fish are דָּגִים (dagim)."],
+    ["What does תַּפּוּחַ mean?", "Apple 🍎", "Banana 🍌", "Orange 🍊", "Grapes 🍇", "תַּפּוּחַ (tapuach) is an apple. A potato is a תַּפּוּחַ אֲדָמָה, an 'apple of the ground'!"],
+    ["What does לֶחֶם mean?", "Bread 🍞", "Milk 🥛", "Cheese 🧀", "Egg 🥚", "לֶחֶם (lechem) is bread. Bethlehem, בֵּית לֶחֶם, means 'house of bread'!"],
+    ["What does מַיִם mean?", "Water 💧", "Juice 🧃", "Fire 🔥", "Snow ❄️", "מַיִם (mayim) means water. In Hebrew, water is always plural!"],
+    ["What does בַּיִת mean?", "House 🏠", "Car 🚗", "Tree 🌳", "Boat ⛵", "בַּיִת (bayit) means house or home. School is בֵּית סֵפֶר (beit sefer), a 'house of books'!"],
+    ["What does יָד mean?", "Hand ✋", "Foot 🦶", "Eye 👁️", "Nose 👃", "יָד (yad) is a hand. The pointer used to read from a Sefer Torah is also called a יָד!"],
+    ["What does רֹאשׁ mean?", "Head", "Nose 👃", "Ear 👂", "Mouth 👄", "רֹאשׁ (rosh) means head. רֹאשׁ הַשָּׁנָה is the 'head of the year': New Year!"],
+    ["Which word means 'sun' ☀️?", "שֶׁמֶשׁ", "יָרֵחַ", "כּוֹכָב", "גֶּשֶׁם", "שֶׁמֶשׁ (shemesh) is the sun, יָרֵחַ (yare'ach) is the moon and כּוֹכָב (kochav) is a star."],
+    ["Which word means 'Grandma' 👵?", "סַבְתָּא", "סָבָא", "אִמָּא", "אָחוֹת", "סַבְתָּא (savta) is Grandma and סָבָא (saba) is Grandpa."],
+    ["What does אָח mean?", "Brother 👦", "Sister 👧", "Baby 👶", "Uncle 🧔", "אָח (ach) is a brother and אָחוֹת (achot) is a sister."],
+    ["What does יַלְדָּה mean?", "Girl 👧", "Boy 👦", "Teacher 🧑‍🏫", "Baby 👶", "יַלְדָּה (yalda) is a girl and יֶלֶד (yeled) is a boy. Lots of children are יְלָדִים (yeladim)."],
+    ["What does גְּלִידָה mean?", "Ice cream 🍦", "Cake 🎂", "Sweets 🍬", "Pizza 🍕", "גְּלִידָה (glida) is ice cream. Chocolate is שׁוֹקוֹלָד, nearly the same as in English!"],
+  ]},
+  { id: "colours", name: "Colours & numbers", icon: "🌈", q: [
+    ["What colour is אָדֹם?", "Red 🔴", "Blue 🔵", "Green 🟢", "Yellow 🟡", "אָדֹם (adom) means red. A strawberry is red, and in Hebrew it's a תּוּת (toot)! 🍓"],
+    ["What colour is כָּחֹל?", "Blue 🔵", "Red 🔴", "Black ⚫", "White ⚪", "כָּחֹל (kachol) is blue, like the stripes on Israel's flag. 🇮🇱"],
+    ["What colour is יָרֹק?", "Green 🟢", "Purple 🟣", "Yellow 🟡", "Orange 🟠", "יָרֹק (yarok) is green. Vegetables are יְרָקוֹת (yerakot), because so many are green!"],
+    ["What colour is צָהֹב?", "Yellow 🟡", "Brown 🟤", "Green 🟢", "Blue 🔵", "צָהֹב (tsahov) is yellow, like a banana. And banana in Hebrew is בָּנָנָה! 🍌"],
+    ["Which word means 'white'?", "לָבָן", "שָׁחֹר", "אָדֹם", "כָּחֹל", "לָבָן (lavan) is white and שָׁחֹר (shachor) is black. Israel's flag is כָּחֹל וְלָבָן: blue and white!"],
+    ["What colour is a banana? Pick the Hebrew! 🍌", "צָהֹב", "סָגֹל", "אָפֹר", "וָרֹד", "צָהֹב is yellow. סָגֹל (sagol) is purple, אָפֹר (afor) is grey and וָרֹד (varod) is pink."],
+    ["What number is שָׁלוֹשׁ?", "3", "2", "5", "8", "Count along: “אַחַת, שְׁתַּיִם, שָׁלוֹשׁ” — one, two, three!"],
+    ["What number is חָמֵשׁ?", "5", "4", "6", "10", "חָמֵשׁ (chamesh) is five, the number of fingers on one hand. ✋"],
+    ["What number is עֶשֶׂר?", "10", "7", "9", "100", "עֶשֶׂר (eser) is ten. Can you count to ten? “אַחַת, שְׁתַּיִם, שָׁלוֹשׁ, אַרְבַּע, חָמֵשׁ, שֵׁשׁ, שֶׁבַע, שְׁמוֹנֶה, תֵּשַׁע, עֶשֶׂר”"],
+    ["What number is שְׁתַּיִם?", "2", "1", "3", "12", "שְׁתַּיִם (shtayim) is two. You have שְׁתֵּי יָדַיִם: two hands!"],
+    ["What number is שְׁמוֹנֶה?", "8", "3", "6", "9", "שְׁמוֹנֶה (shmoneh) is eight, like the eight nights of Chanukah. 🕎"],
+    ["What number is שֶׁבַע?", "7", "4", "9", "70", "שֶׁבַע (sheva) is seven. Shabbat comes on the seventh day of the week."],
+    ["How do you say 'one' when you're counting?", "אַחַת", "שְׁתַּיִם", "שֵׁשׁ", "שֶׁבַע", "אַחַת (achat) is one. You'll also hear אֶחָד (echad), like in the Pesach song “אֶחָד מִי יוֹדֵעַ”."],
+  ]},
+  { id: "hello", name: "Hello & thank you", icon: "👋", q: [
+    ["What does שָׁלוֹם mean?", "Hello, goodbye AND peace", "Please and thank you", "Good morning and good night", "Happy birthday to you", "שָׁלוֹם (shalom) means peace, and you can use it to say hello and goodbye!"],
+    ["What does תּוֹדָה mean?", "Thank you", "Please", "Hello", "Yes", "תּוֹדָה (toda) means thank you. תּוֹדָה רַבָּה (toda raba) means thank you very much!"],
+    ["How do you say 'please' in Hebrew?", "בְּבַקָּשָׁה", "תּוֹדָה", "סְלִיחָה", "לְהִתְרָאוֹת", "בְּבַקָּשָׁה (bevakasha) means please. It also means 'you're welcome'!"],
+    ["What does בֹּקֶר טוֹב mean?", "Good morning ☀️", "Good night 🌙", "Happy birthday 🎂", "Well done 👏", "בֹּקֶר טוֹב (boker tov) means good morning. Good night is לַיְלָה טוֹב (laila tov)."],
+    ["What does לַיְלָה טוֹב mean?", "Good night", "Good morning", "Good luck", "Good boy", "לַיְלָה (laila) means night. Sweet dreams! 🌙"],
+    ["What does כֵּן mean?", "Yes 👍", "No 👎", "Maybe 🤷", "Hello 👋", "כֵּן (ken) means yes and לֹא (lo) means no."],
+    ["What do we say on Friday night and Shabbat? 🕯️", "שַׁבָּת שָׁלוֹם", "בֹּקֶר טוֹב", "מַזָּל טוֹב", "לַיְלָה טוֹב", "שַׁבָּת שָׁלוֹם means 'a peaceful Shabbat'. After Shabbat we say שָׁבוּעַ טוֹב: have a good week!"],
+    ["When do people say מַזָּל טוֹב?", "When something good happens 🎉", "When they're sorry", "When they're hungry", "When it rains", "מַזָּל טוֹב (mazal tov) means congratulations, for birthdays, weddings and barmitzvahs."],
+    ["What does סְלִיחָה mean?", "Sorry / excuse me", "Thank you", "Goodbye", "Well done", "סְלִיחָה (slicha) means sorry. It also means 'excuse me' when you want someone's attention."],
+    ["How do you say 'see you again'?", "לְהִתְרָאוֹת", "בֹּקֶר טוֹב", "בְּתֵאָבוֹן", "תּוֹדָה", "לְהִתְרָאוֹת (lehitra'ot) means 'see you again'. Lots of Israelis just say בַּי — bye!"],
+    ["What does בְּתֵאָבוֹן mean?", "Enjoy your meal 🍽️", "Have a good day", "Bless you (after a sneeze)", "Wash your hands", "בְּתֵאָבוֹן (bete'avon) is what you say before eating. It means 'with appetite'!"],
+    ["What does “מָה שְׁלוֹמְךָ?” mean?", "How are you?", "What's your name?", "Where do you live?", "How old are you?", "מָה שְׁלוֹמְךָ (ma shlomcha) is for a boy. For a girl it's מָה שְׁלוֹמֵךְ (ma shlomech)."],
+    ["How do you say 'My name is…'?", "קוֹרְאִים לִי…", "אֲנִי רוֹצֶה…", "יֵשׁ לִי…", "אֲנִי גָּר…", "קוֹרְאִים לִי (kor'im li) means 'they call me'. Try it with your own name!"],
+  ]},
+];
+
+QS.ivrit.k11 = [
+  { id: "phrases", name: "Phrases & questions", icon: "💬", q: [
+    ["What does “אֵיפֹה אַתָּה גָּר?” mean?", "Where do you live?", "What do you do?", "Where are you going?", "When are you coming?", "גָּר (gar) means 'live' when talking to a boy. A girl is asked: אֵיפֹה אַתְּ גָּרָה?"],
+    ["What does “בֶּן כַּמָּה אַתָּה?” mean?", "How old are you?", "How many brothers have you got?", "What's the time?", "How much does it cost?", "It literally means 'son of how many are you?' To a girl you say: בַּת כַּמָּה אַתְּ?"],
+    ["How do you ask 'How much does it cost?'", "כַּמָּה זֶה עוֹלֶה?", "מָה הַשָּׁעָה?", "אֵיפֹה הַשֵּׁרוּתִים?", "מָה זֶה?", "עוֹלֶה (oleh) means 'costs', and it also means 'goes up'. Prices go up! 📈"],
+    ["What does “אֲנִי לֹא מֵבִין” mean?", "I don't understand", "I don't know", "I'm not hungry", "I can't come", "A girl says אֲנִי לֹא מְבִינָה. 'I don't know' is אֲנִי לֹא יוֹדֵעַ."],
+    ["What does “מָה נִשְׁמָע?” mean?", "How's it going?", "What's that noise?", "What's your name?", "What time is it?", "It literally means 'what is heard?' It's the classic Israeli way to say 'how's it going?'"],
+    ["How do you say 'What's the time?'", "מָה הַשָּׁעָה?", "מָה הַשֵּׁם?", "מָה הַמַּצָּב?", "מָה הַבְּעָיָה?", "שָׁעָה (sha'a) means hour, and a watch or clock is a שָׁעוֹן (sha'on). ⌚"],
+    ["What does “אֶפְשָׁר לְקַבֵּל מַיִם, בְּבַקָּשָׁה?” mean?", "Can I have some water, please?", "Is the water cold, please?", "Where is the water, please?", "No water for me, thanks.", "אֶפְשָׁר (efshar) means 'possible'. 'Is it possible to get…?' is a polite way to ask for things."],
+    ["Which question word means 'why'?", "לָמָּה", "מָתַי", "אֵיךְ", "מִי", "לָמָּה (lama) = why · מָתַי (matai) = when · אֵיךְ (eich) = how · מִי (mi) = who"],
+    ["Which question word means 'when'?", "מָתַי", "אֵיפֹה", "כַּמָּה", "מָה", "מָתַי (matai) means when. Careful: מָה (ma) = what and מִי (mi) = who. Easy to mix up!"],
+    ["What does “יֵשׁ לִי שְׁנֵי אַחִים” mean?", "I have two brothers", "I have two sisters", "I am two years old", "There are two boys", "יֵשׁ לִי (yesh li) means 'I have'. 'I don't have' is אֵין לִי (ein li)."],
+    ["What does “אֲנִי רָעֵב” mean?", "I'm hungry", "I'm tired", "I'm thirsty", "I'm cold", "רָעֵב (ra'ev) = hungry · צָמֵא (tsameh) = thirsty · עָיֵף (ayef) = tired"],
+    ["How would a girl say 'I'm tired'?", "אֲנִי עֲיֵפָה", "אֲנִי עָיֵף", "אֲנִי עֲיֵפִים", "אֲנִי עֲיֵפוֹת", "Lots of describing words add ה for girls: עָיֵף → עֲיֵפָה. (עֲיֵפִים and עֲיֵפוֹת are for groups.)"],
+    ["What does “תּוֹדָה, גַּם לְךָ!” mean?", "Thanks, you too!", "Thanks, I'm full!", "Thanks, see you later!", "Thanks, that's mine!", "גַּם (gam) means 'also' or 'too'."],
+  ]},
+  { id: "vocab", name: "Vocabulary", icon: "📖", q: [
+    ["What does מוֹרָה mean?", "Teacher (a woman)", "Student", "Headteacher", "Classroom", "מוֹרָה (mora) is a female teacher. A male teacher is a מוֹרֶה (moreh)."],
+    ["What does כִּתָּה mean?", "Class / classroom", "Homework", "Exercise book", "Pencil case", "כִּתָּה (kita) is your class. Israeli 6th grade is כִּתָּה ו׳: they number classes with letters!"],
+    ["What does שִׁעוּרֵי בַּיִת mean?", "Homework", "Break time", "School trip", "Assembly", "שִׁעוּרֵי בַּיִת (shiurei bayit) literally means 'home lessons'. Nobody's favourite! 😄"],
+    ["What does חֻלְצָה mean?", "Shirt / top 👕", "Shoes 👟", "Trousers 👖", "Hat 🧢", "חֻלְצָה (chultza) is a shirt. Trousers are מִכְנָסַיִם (michnasayim) and shoes are נַעֲלַיִם (na'alayim)."],
+    ["What does גֶּשֶׁם mean?", "Rain 🌧️", "Wind 💨", "Snow ❄️", "Sunshine ☀️", "גֶּשֶׁם (geshem) is rain. In Israel it hardly rains at all from May to September!"],
+    ["What does חַם mean?", "Hot 🥵", "Cold 🥶", "Windy 💨", "Wet 💦", "חַם (cham) means hot and קַר (kar) means cold. Israeli summers are very חַם!"],
+    ["Which word means 'shop'?", "חֲנוּת", "רְחוֹב", "גִּנָּה", "תַּחֲנָה", "חֲנוּת (chanut) = shop · רְחוֹב (rechov) = street · גִּנָּה (gina) = garden · תַּחֲנָה (tachana) = station or stop"],
+    ["What does מַחְשֵׁב mean?", "Computer 💻", "Calculator", "Phone 📱", "Television 📺", "מַחְשֵׁב (machshev) comes from חָשַׁב, 'to think' or 'to work out'. A thinking machine!"],
+    ["What does אוֹפַנַּיִם mean?", "Bicycle 🚲", "Car 🚗", "Bus 🚌", "Train 🚆", "אוֹפַנַּיִם (ofanayim) ends in -ayim, an ending used for pairs. A bike has two wheels!"],
+    ["What does עִפָּרוֹן mean?", "Pencil ✏️", "Rubber", "Ruler 📏", "Scissors ✂️", "עִפָּרוֹן (iparon) is a pencil, and עֵט (et) is a pen."],
+    ["Which words mean 'breakfast'?", "אֲרוּחַת בֹּקֶר", "אֲרוּחַת עֶרֶב", "אֲרוּחַת צָהֳרַיִם", "חֲטִיף", "אֲרוּחָה (arucha) is a meal. Breakfast is the 'morning meal', lunch the 'midday meal' and dinner the 'evening meal'."],
+    ["On a menu, what is עוֹף?", "Chicken 🍗", "Beef 🥩", "Fish 🐟", "Salad 🥗", "עוֹף (of) means bird or chicken. A menu is a תַּפְרִיט (tafrit)."],
+    ["Which word means 'friend' (a boy)?", "חָבֵר", "חֶדֶר", "חָלָב", "חַלּוֹן", "חָבֵר (chaver) is a friend; for a girl it's חֲבֵרָה. Careful: חֶדֶר is a room, חָלָב is milk and חַלּוֹן is a window!"],
+    ["What does יָם mean?", "Sea 🌊", "Lake", "River", "Mountain ⛰️", "יָם (yam) is the sea. The Mediterranean is הַיָּם הַתִּיכוֹן: 'the middle sea'!"],
+    ["What does מִשְׁפָּחָה mean?", "Family 👨‍👩‍👧‍👦", "Friends", "Neighbours", "Classmates", "מִשְׁפָּחָה (mishpacha). You might hear people say 'mishpocha' in Yiddish-English too!"],
+  ]},
+  { id: "time", name: "Numbers, days & time", icon: "📅", q: [
+    ["Which day is יוֹם רִאשׁוֹן?", "Sunday", "Monday", "Saturday", "Friday", "Hebrew days are numbered: יוֹם רִאשׁוֹן means 'first day'. In Israel, Sunday is a normal school and work day!"],
+    ["Which day is יוֹם שְׁלִישִׁי?", "Tuesday", "Wednesday", "Thursday", "Monday", "שְׁלִישִׁי (shlishi) means 'third'. Tuesday is the third day of the week."],
+    ["What is Saturday in Hebrew?", "שַׁבָּת", "יוֹם שִׁשִּׁי", "יוֹם רִאשׁוֹן", "יוֹם חֲמִישִׁי", "Saturday is simply שַׁבָּת! Friday is יוֹם שִׁשִּׁי, the sixth day."],
+    ["What is Thursday in Hebrew?", "יוֹם חֲמִישִׁי", "יוֹם שֵׁנִי", "יוֹם רְבִיעִי", "יוֹם שִׁשִּׁי", "חֲמִישִׁי (chamishi) means fifth, from חָמֵשׁ (five)."],
+    ["What number is עֶשְׂרִים?", "20", "12", "10", "200", "עֶשְׂרִים (esrim) is 20. Most tens end in -im: שְׁלוֹשִׁים (30) · אַרְבָּעִים (40) · חֲמִשִּׁים (50)"],
+    ["What number is מֵאָה?", "100", "1,000", "10", "50", "מֵאָה (me'a) is 100 and אֶלֶף (elef) is 1,000."],
+    ["What is 15 in Hebrew (when counting)?", "חֲמֵשׁ עֶשְׂרֵה", "חֲמִשִּׁים", "חָמֵשׁ", "חֲמִשָּׁה", "The teens are 'number + עֶשְׂרֵה': אַחַת עֶשְׂרֵה (11) · שְׁתֵּים עֶשְׂרֵה (12) · חֲמֵשׁ עֶשְׂרֵה (15)"],
+    ["What time is שָׁלוֹשׁ וָחֵצִי?", "Half past three", "Quarter past three", "Three o'clock", "Half past two", "חֵצִי (chetsi) means half and רֶבַע (reva) means quarter."],
+    ["What does אֶתְמוֹל mean?", "Yesterday", "Tomorrow", "Today", "Tonight", "אֶתְמוֹל (etmol) = yesterday · הַיּוֹם (hayom) = today · מָחָר (machar) = tomorrow"],
+    ["What does שָׁבוּעַ mean?", "Week", "Month", "Year", "Day", "שָׁבוּעַ (shavua) comes from שֶׁבַע, seven. A week has seven days!"],
+    ["Which Hebrew month is Rosh Hashanah in?", "תִּשְׁרֵי", "נִיסָן", "כִּסְלֵו", "אֲדָר", "Rosh Hashanah is on 1 Tishrei. Pesach is in Nisan, Chanukah starts in Kislev and Purim is in Adar."],
+    ["What is 'January' in Modern Hebrew?", "יָנוּאָר", "יוּנִי", "יוּלִי", "פֶבְּרוּאָר", "Israelis use both calendars! The everyday months sound like English: יָנוּאָר · פֶבְּרוּאָר · מֶרְץ"],
+    ["What does שָׁנָה mean?", "Year", "Hour", "Week", "Second", "שָׁנָה (shana) is a year. שָׁנָה טוֹבָה means 'have a good year'!"],
+    ["What is אַרְבַּע + שָׁלוֹשׁ?", "שֶׁבַע", "שֵׁשׁ", "שְׁמוֹנֶה", "חָמֵשׁ", "4 + 3 = 7. 'Plus' is וְעוֹד (ve'od), meaning 'and more': “אַרְבַּע וְעוֹד שָׁלוֹשׁ זֶה שֶׁבַע.”"],
+    ["What does שְׁנִיָּה mean? ⏱️", "A second", "A minute", "An hour", "A day", "שְׁנִיָּה (shniya) is a second and דַּקָּה (daka) is a minute. 'Wait a second!' is רַק שְׁנִיָּה!"],
+  ]},
+  { id: "grammar", name: "Grammar basics", icon: "✏️", q: [
+    ["Which word means 'the boy'?", "הַיֶּלֶד", "יֶלֶד", "לַיֶּלֶד", "בְּיֶלֶד", "Hebrew has no separate word for 'the'. You stick הַ (ha) on the front: יֶלֶד → הַיֶּלֶד."],
+    ["What is the plural of יֶלֶד (boy)?", "יְלָדִים", "יַלְדָּה", "יְלָדוֹת", "יַלְדוּת", "Masculine plurals usually end in -im (ים) and feminine ones in -ot (וֹת): יְלָדִים · יְלָדוֹת"],
+    ["What is the plural of יַלְדָּה (girl)?", "יְלָדוֹת", "יְלָדִים", "יַלְדָּה", "יַלְדוּת", "יְלָדוֹת is 'girls'. יַלְדוּת (yaldut) is a real word too: it means childhood!"],
+    ["How does a GIRL say 'I want'?", "אֲנִי רוֹצָה", "אֲנִי רוֹצֶה", "אֲנַחְנוּ רוֹצִים", "הֵם רוֹצִים", "In Hebrew, verbs change for boys and girls: a boy says אֲנִי רוֹצֶה, a girl says אֲנִי רוֹצָה."],
+    ["Which word means 'we'?", "אֲנַחְנוּ", "אַתֶּם", "הֵם", "אֲנִי", "אֲנִי = I · אַתָּה = you (boy) · אַתְּ = you (girl) · אֲנַחְנוּ = we"],
+    ["Which word means 'they' for a group of girls?", "הֵן", "הֵם", "אֲנַחְנוּ", "אַתֶּן", "הֵן (hen) is for girls only. הֵם (hem) is for boys or a mixed group."],
+    ["Fill the gap: “הַבַּיִת ___” (The house is big)", "גָּדוֹל", "גְּדוֹלָה", "גְּדוֹלִים", "קָטָן", "בַּיִת is a masculine word, so its describing word is masculine too: גָּדוֹל. And Hebrew doesn't need a word for 'is'!"],
+    ["Which means 'I have a dog'?", "יֵשׁ לִי כֶּלֶב", "אֵין לִי כֶּלֶב", "אֲנִי כֶּלֶב", "זֶה הַכֶּלֶב שֶׁלָּךְ", "יֵשׁ לִי = I have · אֵין לִי = I don't have. (And אֲנִי כֶּלֶב means 'I am a dog'! 🐶)"],
+    ["What does שֶׁלִּי mean in “הַסֵּפֶר שֶׁלִּי”?", "My / mine", "Your / yours", "His", "Our / ours", "שֶׁלִּי = mine · שֶׁלְּךָ = yours (boy) · שֶׁלָּךְ = yours (girl) · שֶׁלּוֹ = his · שֶׁלָּהּ = hers"],
+    ["Which of these is a feminine (a 'she') word?", "מִטָּה (bed)", "שֻׁלְחָן (table)", "סֵפֶר (book)", "כִּסֵּא (chair)", "Most words ending in ה or ת are feminine, like מִטָּה. The others here are all masculine."],
+    ["What does “הוּא הוֹלֵךְ לְבֵית הַסֵּפֶר” mean?", "He goes to school", "She goes to school", "He went to school", "He is at school", "הוֹלֵךְ (holech) means 'goes' or 'walks' for a boy. For a girl it's הוֹלֶכֶת (holechet)."],
+    ["How do you say 'a big dog'?", "כֶּלֶב גָּדוֹל", "גָּדוֹל כֶּלֶב", "גָּדוֹל הַכֶּלֶב", "כֶּלֶב גְּדוֹלָה", "In Hebrew the describing word comes AFTER the noun, so it's 'dog big': כֶּלֶב גָּדוֹל."],
+    ["What is the opposite of גָּדוֹל (big)?", "קָטָן", "גָּבוֹהַּ", "חָזָק", "יָפֶה", "גָּדוֹל (gadol) = big · קָטָן (katan) = small · גָּבוֹהַּ (gavoha) = tall · חָזָק (chazak) = strong"],
+    ["Fill the gap: “אֲנִי ___ לַחֲנוּת” (I'm going to the shop, said by a boy)", "הוֹלֵךְ", "הוֹלֶכֶת", "הוֹלְכִים", "הוֹלְכוֹת", "A boy says אֲנִי הוֹלֵךְ, a girl says אֲנִי הוֹלֶכֶת. A group says אֲנַחְנוּ הוֹלְכִים."],
+    ["Which letter means 'and' when you stick it on the front of a word?", "ו", "ה", "ב", "ל", "וְ means 'and': אַבָּא וְאִמָּא is 'Dad and Mum'. הַ = the · בְּ = in · לְ = to"],
+  ]},
+  { id: "israel", name: "Israel & culture", icon: "🇮🇱", q: [
+    ["In which city does the Knesset, Israel's parliament, meet?", "Jerusalem", "Tel Aviv", "Haifa", "Eilat", "The כְּנֶסֶת meets in יְרוּשָׁלַיִם (Yerushalayim). It has 120 members."],
+    ["What is the name of Israel's national anthem?", "Hatikvah", "Hava Nagila", "Yerushalayim Shel Zahav", "Adon Olam", "הַתִּקְוָה (Hatikvah) means 'The Hope'."],
+    ["Who is known as the 'father' of Modern Hebrew?", "Eliezer Ben-Yehuda", "Theodor Herzl", "David Ben-Gurion", "Golda Meir", "Ben-Yehuda wrote a huge Hebrew dictionary, made up many new words, and brought up his son speaking only Hebrew."],
+    ["What is a צַבָּר (sabra)?", "A cactus fruit, and a nickname for Israeli-born people", "A flatbread baked in a clay oven", "A hot wind that blows in from the desert", "A sweet pastry eaten on Shabbat morning", "Prickly on the outside, sweet on the inside. That's how Israelis like to describe themselves! 🌵"],
+    ["What do Israelis call the Dead Sea?", "יַם הַמֶּלַח", "הַיָּם הַתִּיכוֹן", "יַם סוּף", "הַכִּנֶּרֶת", "יַם הַמֶּלַח means 'the Salt Sea'. It's the lowest place on land on Earth, and so salty you float!"],
+    ["What do Israelis call the Sea of Galilee?", "The Kinneret", "The Yarden", "The Negev", "The Carmel", "הַכִּנֶּרֶת. Some say the name comes from כִּנּוֹר (kinor), a harp, because the lake is harp-shaped!"],
+    ["What is Israeli falafel made from?", "Chickpeas", "Potatoes", "Rice", "Lentils", "It's usually stuffed into a פִּתָּה (pita) with salad and tahini. Yum! 🧆"],
+    ["On which festival do Israeli kids build huge bonfires? 🔥", "Lag BaOmer", "Purim", "Shavuot", "Tu BiShvat", "On ל״ג בָּעֹמֶר kids collect wood for weeks to build bonfires, called מְדוּרוֹת (medurot)."],
+    ["What is Israel's Independence Day called in Hebrew?", "Yom Ha'atzmaut", "Yom HaShoah", "Yom Kippur", "Yom Yerushalayim", "יוֹם הָעַצְמָאוּת is on 5 Iyar. Israel became independent in 1948."],
+    ["What is the big desert in the south of Israel called?", "The Negev", "The Sahara", "The Galil", "The Golan", "הַנֶּגֶב covers more than half of Israel's land!"],
+    ["What is a שֶׁקֶל (shekel)?", "Israel's money", "A kind of bread", "A dance", "A bus", "Prices are marked ₪. There are 100 אֲגוֹרוֹת (agorot) in one שֶׁקֶל."],
+    ["What colours are on Israel's flag?", "Blue and white", "Red and white", "Blue and yellow", "Green and white", "The stripes are like a tallit, with a מָגֵן דָּוִד (Star of David) in the middle."],
+    ["What is the famous Israeli circle dance?", "The hora", "The tango", "The waltz", "The cancan", "Everyone holds hands and dances the הוֹרָה, often to Hava Nagila!"],
+    ["Which Israeli city is nicknamed 'the city that never stops'?", "Tel Aviv", "Jerusalem", "Tzfat", "Be'er Sheva", "תֵּל אָבִיב means 'Hill of Spring'. It was founded in 1909."],
+    ["What is a קִבּוּץ (kibbutz)?", "A village where people share work and belongings", "A school where children board during the week", "A training base for new soldiers", "A covered market selling fruit and spices", "The first kibbutz, Degania, was founded in 1910 beside the Sea of Galilee."],
+  ]},
+];
+
+// =====================================================================
+//  IVRIT: Age 14, written for GCSE Modern Hebrew revision (AQA 8678).
+//  Sections follow the AQA themes, plus grammar, translation and exam instructions.
+//  Hebrew is unpointed (no nikud), as in the exam papers. ⭐ in a fact = Higher-tier.
+// =====================================================================
+QS.ivrit = QS.ivrit || {};
+QS.ivrit.notes = QS.ivrit.notes || {};
+QS.ivrit.notes.k14 = "Follows the AQA GCSE Modern Hebrew themes, with grammar, translation and exam instructions. The Hebrew has no nikud, like in the exam. ⭐ = Higher tier.";
+
+QS.ivrit.k14 = [
+  // ---------- Theme 1: Identity and culture ----------
+  { id: "family", name: "Me, family & friends", icon: "👨‍👩‍👧", q: [
+    ["What does “אחי הגדול” mean?", "My big brother", "My big sister", "My little brother", "My grandfather", "אח + י = אחי (my brother). You can also say האח הגדול שלי. AQA accepts either way of showing 'my'."],
+    ["Which word means 'shy'?", "ביישן", "עצמאי", "קפדן", "חברותי", "ביישן = shy · עצמאי = independent · קפדן = strict · חברותי = sociable"],
+    ["What does “אני מסתדר טוב עם אחותי” mean?", "I get on well with my sister", "I argue with my sister", "I live with my sister", "I look like my sister", "להסתדר עם = to get on with. To argue is לריב: “אני רב עם אחי לפעמים.”"],
+    ["How do you say 'my parents are divorced'?", "ההורים שלי גרושים", "ההורים שלי נשואים", "ההורים שלי מבוגרים", "ההורים שלי גרים יחד", "נשוי = married · גרוש = divorced · רווק = single. Add ה for women: נשואה · גרושה · רווקה"],
+    ["What does נדיב mean?", "Generous", "Jealous", "Lazy", "Honest", "⭐ Higher personality words: נדיב = generous · קנאי = jealous · אמין = reliable · נאמן = loyal"],
+    ["What is the opinion? “היא תמיד מצחיקה אותי”", "Positive: she always makes me laugh", "Negative: she always annoys me", "Positive: she always helps me", "Negative: she always laughs at me", "להצחיק = to make someone laugh. אותי = me (את + me)."],
+    ["What is a חבר לעט?", "A penfriend", "A best friend", "A classmate", "A neighbour", "Literally 'a friend to the pen'. A close friend is חבר קרוב and a best friend is החבר הכי טוב שלי."],
+    ["Which word means 'wedding'?", "חתונה", "חתן", "כלה", "אירוסין", "חתונה = wedding · חתן = groom · כלה = bride · אירוסין = engagement. ⭐ ארוס / ארוסה = fiancé / fiancée"],
+    ["What does “יש לו עיניים כחולות ושיער חום” mean?", "He has blue eyes and brown hair", "She has blue eyes and brown hair", "He has green eyes and black hair", "He has blue eyes and long hair", "עין is feminine, so it's עיניים כחולות. שיער is masculine: שיער חום, שיער ארוך."],
+    ["What is a משפחה חד-הורית?", "A single-parent family", "A big family", "An extended family", "An adoptive family", "⭐ חד = one (from אחד). משפחה מורחבת = extended family · משפחה מאמצת = adoptive family"],
+    ["“אני רוצה להתחתן בעתיד, אבל לא לפני גיל שלושים.” When does the writer want to marry?", "Not before the age of 30", "Before the age of 30", "Never", "Next year", "להתחתן = to get married. לפני = before · אחרי = after. Exam questions love these little words!"],
+    ["Which of these is NOT a member of the family?", "שכן", "דוד", "סבתא", "בן דוד", "שכן = neighbour. דוד = uncle · דודה = aunt · בן דוד / בת דודה = cousin"],
+    ["What does בעל ביטחון עצמי mean?", "Self-confident", "Selfish", "Self-employed", "Lonely", "⭐ Literally 'owner of self-security'. בעל can mean husband, but also 'having' or 'owner of'."],
+  ]},
+  { id: "tech", name: "Technology", icon: "📱", q: [
+    ["What does להוריד mean on a computer?", "To download", "To upload", "To delete", "To print", "להוריד = to bring down (download) · להעלות = to upload · למחוק = to delete · להדפיס = to print"],
+    ["Which words mean 'social network'?", "רשת חברתית", "אתר אינטרנט", "דואר אלקטרוני", "מערכת הפעלה", "רשת = network, חברתית = social (from חבר). ⭐ מערכת הפעלה = operating system"],
+    ["What does “אני משתמש בטלפון כל היום” mean?", "I use my phone all day", "I phone people every day", "I lose my phone every day", "I charge my phone all day", "להשתמש ב… = to use, always with ב. It's hitpa'el, and the ש and ת swap places: משתמש, not 'מתשמש'."],
+    ["What is a יישומון?", "An app", "A laptop", "A password", "A website", "⭐ The Academy of the Hebrew Language invented יישומון for 'app', but most Israelis just say אפליקציה!"],
+    ["Which word means 'password'?", "סיסמה", "משתמש", "מסך", "מקלדת", "סיסמה = password · מסך = screen · מקלדת = keyboard · עכבר = mouse (the animal too!)"],
+    ["What is the opinion? “הרשתות החברתיות מבזבזות זמן”", "Negative: social media wastes time", "Positive: social media saves time", "Positive: social media is fun", "Negative: social media is expensive", "⭐ לבזבז = to waste. It has a four-letter root, ב.ז.ב.ז. Handy for giving opinions in the writing paper."],
+    ["How do you say 'to send a message'?", "לשלוח הודעה", "לקבל הודעה", "לקרוא הודעה", "למחוק הודעה", "לשלוח = to send · לקבל = to receive. A text message is an הודעה, or a מסרון."],
+    ["What is the danger? “יש סכנה של בריונות ברשת”", "Cyberbullying", "Computer viruses", "Losing your data", "Spending too much money", "⭐ בריון = a bully, so בריונות = bullying. ברשת = online (literally 'on the net')."],
+    ["What does “בלי האינטרנט לא יכולתי לעשות את שיעורי הבית” mean?", "Without the internet I couldn't do my homework", "With the internet I can do my homework", "Without the internet I don't do homework", "I can't use the internet for homework", "AQA flags this verb: write and say יכולתי (yacholti) for 'I could'."],
+    ["What does מכור למחשב mean?", "Addicted to the computer", "Good at computers", "Bored of the computer", "Afraid of computers", "מכור (machur) means addicted, and literally also 'sold'! Addiction is התמכרות."],
+    ["How do you say 'to charge the phone'?", "להטעין את הטלפון", "לכבות את הטלפון", "להדליק את הטלפון", "לאבד את הטלפון", "להטעין = to charge · לכבות = to switch off · להדליק = to switch on · לאבד = to lose"],
+    ["Advantage or disadvantage? “אפשר לדבר עם חברים בכל העולם”", "Advantage: you can talk to friends all over the world", "Disadvantage: you can't talk to friends abroad", "Advantage: it's cheap to phone abroad", "Disadvantage: friends talk too much", "יתרון = advantage, חסרון = disadvantage. Both words turn up in exam instructions."],
+  ]},
+  { id: "free", name: "Free time", icon: "🎬", q: [
+    ["What is a סרט אימה?", "A horror film", "A comedy", "A cartoon", "A documentary", "סרט = film. סרט אימה = horror · קומדיה = comedy · סרט מצויר = cartoon · סרט תיעודי = documentary"],
+    ["What are כתוביות?", "Subtitles", "Trailers", "Tickets", "Credits", "⭐ From כ.ת.ב (write). Israelis watch lots of English shows with Hebrew כתוביות rather than dubbing."],
+    ["Which instrument is a כינור?", "Violin", "Flute", "Drum", "Guitar", "⭐ כינור = violin · חליל = flute · תוף = drum. In the Tanach, King David plays a כינור (a lyre)."],
+    ["What does “אני מנגן בפסנתר כבר חמש שנים” mean?", "I've been playing the piano for five years", "I played the piano five years ago", "I'll play the piano in five years", "I want to play the piano for five years", "כבר + present tense = 'have been …ing'. Note: you play an instrument with לנגן ב…"],
+    ["Which verb do you use for 'to play football'?", "לשחק", "לנגן", "לרקוד", "לשיר", "לשחק כדורגל = to play football, but לנגן בגיטרה = to play the guitar. Mixing these up is a classic mistake!"],
+    ["What is a צמחוני?", "A vegetarian", "A vegan", "A gardener", "A greengrocer", "צמח = plant, so צמחוני = vegetarian. Vegan is טבעוני."],
+    ["In a restaurant, what are you asking for? “אפשר את החשבון, בבקשה?”", "The bill", "The menu", "A table", "A glass of water", "חשבון = bill (and also maths sums!) · תפריט = menu · מלצר / מלצרית = waiter / waitress"],
+    ["The waiter asks: “מה תרצו לשתות?” What is he offering?", "Something to drink", "Something to eat", "A dessert", "A table", "תרצו is future tense, plural: 'What will you want to drink?' It's polite and very common."],
+    ["What is עוגת גבינה?", "Cheesecake", "A cheese sandwich", "Chocolate cake", "A cheese omelette", "עוגה → עוגת: feminine nouns change ה to ת in a 'smichut' pair. Cheesecake is the classic Shavuot food!"],
+    ["Which sport is כדורעף?", "Volleyball", "Basketball", "Netball", "Handball", "כדור (ball) + עף (flies) = volleyball! כדורסל = basketball (סל = basket) · כדורגל = football (רגל = foot)"],
+    ["What does “אני מתאמן בחדר כושר פעמיים בשבוע” mean?", "I train at the gym twice a week", "I swim twice a week", "I go to the gym every day", "I trained at the gym last week", "להתאמן = to train. פעמיים = twice, a 'pair' word like עיניים. (פעם = once / one time)"],
+    ["What does the critic think? “הסרט היה משעמם והשחקנים גרועים”", "Negative: boring film, bad actors", "Positive: exciting film, great actors", "Mixed: boring film, great actors", "Positive: funny film, good actors", "משעמם = boring · גרוע = bad. Opposites to learn: מרתק = gripping · מעולה = excellent"],
+    ["What does חובב mean in “אני חובב מוזיקה”?", "A fan / lover of something", "Someone who hates something", "A player", "A teacher", "חובב / חובבת = a fan or an amateur. It's from the same root as חביב (likeable)."],
+    ["“בשבת אנחנו אוכלים ארוחה גדולה עם כל המשפחה.” When do they eat a big meal?", "On Shabbat", "Every evening", "On Sundays", "Only on holidays", "ב + a day = 'on': בשבת = on Shabbat · ביום שני = on Monday"],
+  ]},
+  { id: "festivals", name: "Customs & festivals", icon: "🕎", q: [
+    ["On which festival do people eat סופגניות?", "Chanukah", "Purim", "Pesach", "Sukkot", "סופגנייה = doughnut. They're fried in oil to remember the miracle of the oil."],
+    ["What does לצום mean?", "To fast", "To pray", "To celebrate", "To dress up", "צום = a fast. On Yom Kippur, many people fast for about 25 hours."],
+    ["What does “חג שמח” mean?", "Happy holiday!", "Happy birthday!", "Happy new year!", "Good luck!", "חג = festival. חג שמח works for any festival. On Pesach you'll also hear חג כשר ושמח."],
+    ["What is a תחפושת?", "A fancy-dress costume", "A mask", "A rattle", "A gift basket", "On Purim, kids wear תחפושות. A mask is a מסכה, and the food gifts are משלוחי מנות."],
+    ["Which festival is 'the New Year for Trees'?", "Tu BiShvat", "Sukkot", "Shavuot", "Lag BaOmer", "ט״ו בשבט = the 15th of Shevat. ט״ו is 9 + 6: we avoid writing 10 + 5 because it spells part of God's name."],
+    ["What happens in Israel on יום הזיכרון?", "People remember fallen soldiers and victims of terror", "Families have barbecues in the park", "Kids light bonfires", "People eat dairy food", "A siren sounds and everyone stops and stands in silence. That evening, יום העצמאות begins."],
+    ["What does “אנחנו בונים סוכה בגינה” mean?", "We build a sukkah in the garden", "We eat in the sukkah in the garden", "We built a sukkah in the park", "We sleep in the sukkah", "לבנות = to build. Present tense: בונה · בונה · בונים · בונות"],
+    ["Which festival celebrates receiving the Torah?", "Shavuot", "Simchat Torah", "Pesach", "Sukkot", "שבועות means 'weeks'. It comes seven weeks after Pesach."],
+    ["What is a מנגל, very popular on Yom Ha'atzmaut?", "A barbecue", "A picnic blanket", "A flag", "A firework", "On Independence Day, Israeli parks fill up with families doing a מנגל!"],
+    ["Which word means 'candle'?", "נר", "אש", "אור", "שמן", "נר = candle · אש = fire (a feminine word!) · אור = light · שמן = oil"],
+    ["How do you say 'we celebrate'?", "אנחנו חוגגים", "אנחנו חגגנו", "אנחנו נחגוג", "הם חוגגים", "לחגוג = to celebrate. חגגנו = we celebrated · נחגוג = we will celebrate"],
+    ["What does “בפסח אסור לאכול לחם” mean?", "On Pesach you're not allowed to eat bread", "On Pesach you must eat bread", "On Pesach you can eat bread", "On Pesach we bake bread", "⭐ אסור + infinitive = it's forbidden to · מותר = it's allowed · צריך = you need to. AQA lists this structure."],
+    ["What is ליל הסדר?", "Seder night", "The night before Yom Kippur", "The last night of Chanukah", "New Year's Eve", "ליל is the 'smichut' form of לילה. Remember: לילה is masculine even though it ends in ה!"],
+  ]},
+  // ---------- Theme 2: Local, national, international and global areas of interest ----------
+  { id: "town", name: "Home & town", icon: "🏙️", q: [
+    ["What is a מקרר?", "A fridge", "An oven", "A washing machine", "A cupboard", "From קר (cold): 'the cooler'. תנור = oven · מכונת כביסה = washing machine · ארון = cupboard"],
+    ["Where would you find a מיטה and a שולחן כתיבה?", "In a bedroom", "In a kitchen", "In a garden", "In a bathroom", "חדר שינה = bedroom (the room of sleep) · מטבח = kitchen · חדר רחצה = bathroom"],
+    ["What does “אני גר בקומה השלישית” mean?", "I live on the third floor", "I live in the third house", "I live three streets away", "I've lived here for three years", "קומה = floor. It's feminine, so the ordinal is too: השלישית."],
+    ["What is a גורד שחקים?", "A skyscraper", "A shopping centre", "A car park", "A lighthouse", "⭐ Literally 'a scraper of the skies', just like in English!"],
+    ["What does מול mean in “הבית שלי מול הפארק”?", "Opposite", "Behind", "Next to", "Far from", "מול = opposite · מאחורי = behind · ליד = next to · רחוק מ… = far from"],
+    ["What is the problem? “יש יותר מדי תנועה ואין מספיק חנייה”", "Too much traffic and not enough parking", "Not enough buses and too many cars", "Too many shops and no park", "Too much noise and no buses", "יותר מדי = too much · לא מספיק / אין מספיק = not enough. Great for complaining about your town!"],
+    ["How do you say 'in the city centre'?", "במרכז העיר", "בפרברים", "בכפר", "ליד הים", "מרכז = centre · עיר = city (feminine, with the plural ערים) · פרברים = suburbs · כפר = village"],
+    ["What is a רחוב ללא מוצא?", "A cul-de-sac", "A one-way street", "A pedestrian street", "A main road", "⭐ ללא = without, מוצא = way out. A one-way street is a רחוב חד-סטרי."],
+    ["“פעם גרנו בדירה קטנה, אבל עכשיו יש לנו בית עם גינה.” Where do they live now?", "A house with a garden", "A small flat", "A flat with a garden", "A house without a garden", "Time words win marks: פעם = once / in the past · עכשיו = now · בעתיד = in the future"],
+    ["Which shop sells medicine?", "בית מרקחת", "מאפייה", "מכולת", "אטליז", "בית מרקחת = pharmacy · מאפייה = bakery · מכולת = corner shop · אטליז = butcher's"],
+    ["What does שכונה mean?", "Neighbourhood", "Neighbour", "Region", "Village", "שכונה = neighbourhood and שכן = neighbour. Same root, ש.כ.נ, meaning 'to dwell'."],
+    ["מה ההפך של 'שקט'?", "רועש", "נקי", "יפה", "ירוק", "שקט = quiet, רועש = noisy. In Section B of the reading and listening papers, the questions are in Hebrew like this one!"],
+    ["What does “אני אוהב לגור כאן כי יש הרבה מה לעשות” mean?", "I like living here because there's lots to do", "I'd like to live here because there's lots to do", "I don't like living here because there's nothing to do", "I like living here because it's quiet", "כי = because, the most useful word for backing up an opinion."],
+  ]},
+  { id: "social", name: "Social issues", icon: "💚", q: [
+    ["What does להתנדב mean?", "To volunteer", "To donate", "To vote", "To compete", "להתנדב = to volunteer · מתנדב = a volunteer · התנדבות = volunteering · לתרום = to donate"],
+    ["What is צדקה?", "Charity", "Homework", "Healthcare", "Friendship", "צדקה comes from צדק, justice. Giving is seen as doing what's right, not just being kind."],
+    ["What does “אני תורם בגדים ישנים לעמותה” mean?", "I donate old clothes to a charity", "I buy old clothes from a charity", "I sell old clothes online", "I wear old clothes to school", "לתרום = to donate. עמותה = a charity or non-profit organisation."],
+    ["Which of these is healthy?", "לאכול פירות וירקות", "לעשן סיגריות", "לשתות הרבה משקאות מוגזים", "לישון רק ארבע שעות", "פירות = fruit · ירקות = vegetables · משקאות מוגזים = fizzy drinks · לעשן = to smoke"],
+    ["How do you say 'it's bad for your health'?", "זה מזיק לבריאות", "זה טוב לבריאות", "זה בריא מאוד", "זה לא מזיק", "בריא = healthy · בריאות = health · מזיק = harmful (from נזק, damage)"],
+    ["What is the advice? “כדאי לישון שמונה שעות בלילה”", "It's a good idea to sleep eight hours a night", "You must only sleep eight hours a day", "Don't sleep more than eight hours", "Sleep is a waste of time", "כדאי + infinitive = it's worth / you should. Also: צריך = need to · אסור = mustn't · מומלץ = it's recommended"],
+    ["What does “אני מתאמן כדי להישאר בכושר” mean?", "I exercise in order to stay fit", "I exercise because I'm bored", "I want to get fit before the summer", "I don't exercise because I'm fit", "כדי ל… = in order to, a great way to build longer sentences. להישאר = to stay."],
+    ["What are סמים?", "Drugs", "Sweets", "Vitamins", "Cigarettes", "⭐ Higher words: מנת יתר = overdose · מרכז גמילה = rehab centre · להימנע מ… = to avoid"],
+    ["What does לעזור לאחרים mean?", "To help others", "To ask others", "To ignore others", "To follow others", "לעזור always takes ל: “אני עוזר לסבתא שלי.”"],
+    ["Why volunteer? “זה נותן לי הרגשה טובה”", "It gives me a good feeling", "It gives me money", "It gives me free time", "It gets me good marks", "לתת = to give: נותן · נותנת. הרגשה = feeling."],
+    ["Which word means 'stress' or 'pressure'?", "לחץ", "לחם", "כאב", "חום", "לחץ = pressure, so אני בלחץ = I'm stressed. כאב = pain · חום = fever / heat"],
+    ["Which word means 'addiction'?", "התמכרות", "התנדבות", "התעמלות", "התחשבות", "All four are hitpa'el nouns: addiction · volunteering · exercise / PE · consideration for others"],
+    ["How do you say 'I've decided to stop eating sweets'?", "החלטתי להפסיק לאכול ממתקים", "החלטתי להתחיל לאכול ממתקים", "אני רוצה לאכול פחות ממתקים", "אמא שלי אסרה עליי ממתקים", "להחליט = to decide · להפסיק = to stop · להתחיל = to start. Two infinitives in a row is fine: להפסיק לאכול."],
+  ]},
+  { id: "global", name: "Global issues", icon: "🌍", q: [
+    ["What does סביבה mean?", "Environment / surroundings", "Weather / climate", "Pollution / smog", "Countryside / farmland", "Israelis call the environment as an issue איכות הסביבה: 'the quality of the environment'."],
+    ["What is זיהום אוויר?", "Air pollution", "Air conditioning", "Fresh air", "Air travel", "זיהום = pollution. ⭐ Don't mix it up with מיזוג אוויר = air conditioning!"],
+    ["What does למחזר mean?", "To recycle", "To throw away", "To save energy", "To repair", "From מחזור, a cycle. ⭐ מיחזור = recycling"],
+    ["What does חסר בית mean?", "Homeless", "Homesick", "House-proud", "Home-made", "חסר = lacking. חסרי בית = homeless people · מחסור = a shortage"],
+    ["What is עוני?", "Poverty", "Wealth", "Hunger", "Unemployment", "עוני = poverty · עני = poor · עשיר = rich · אבטלה = unemployment · רעב = hunger"],
+    ["What does “צריך לחסוך במים כי אין מספיק גשם” say?", "We need to save water because there isn't enough rain", "We need more water because it rains a lot", "We should drink more water", "Rain water isn't clean", "לחסוך = to save (money, water or energy). Saving water is a big deal in Israel."],
+    ["What is התחממות כדור הארץ?", "Global warming", "The Earth's core", "Earthquakes", "Space travel", "כדור הארץ = planet Earth ('the ball of the land'). התחממות = warming up."],
+    ["Which word means 'waste' or 'rubbish'?", "פסולת", "פסל", "פסגה", "פסטה", "פסולת = waste · אשפה / זבל = rubbish · פח = bin. The sound-alikes: פסל = statue · פסגה = summit"],
+    ["What does “כדאי לנסוע באופניים במקום במכונית” suggest?", "Cycling instead of driving", "Driving instead of cycling", "Buying a new bike", "Walking instead of cycling", "במקום = instead of. A lovely structure for the writing paper."],
+    ["What does להגן על mean?", "To protect", "To attack", "To ignore", "To destroy", "להגן על = to protect. It's from the same root as מגן (shield), as in מגן דוד!"],
+    ["What is the biggest problem? “הבעיה הכי גדולה היא שיש יותר מדי פלסטיק בים”", "Too much plastic in the sea", "Not enough fish in the sea", "The sea is too warm", "Too many tourists on the beach", "הכי + adjective = the most: הכי גדולה = the biggest."],
+    ["What is אנרגיה סולארית?", "Solar energy", "Wind energy", "Nuclear energy", "Saving energy", "Most Israeli homes have a דוד שמש on the roof: a solar water heater!"],
+    ["How do you say 'we must protect nature'?", "אנחנו חייבים להגן על הטבע", "אנחנו לא צריכים להגן על הטבע", "אנחנו אוהבים את הטבע", "אסור להגן על הטבע", "חייב / חייבת / חייבים = must. טבע = nature."],
+  ]},
+  { id: "travel", name: "Travel & tourism", icon: "✈️", q: [
+    ["What is a מזוודה?", "A suitcase", "A passport", "A ticket", "A map", "מזוודה = suitcase · דרכון = passport · כרטיס = ticket · מפה = map"],
+    ["What is a טיסה?", "A flight", "A boat trip", "A coach", "A hotel", "From ט.ו.ס (fly): מטוס = plane · טייס = pilot · לטוס = to fly"],
+    ["“בחופש הגדול נסענו לאילת ושחינו בים.” What did they do?", "Went to Eilat and swam in the sea", "Will go to Eilat and swim", "Stayed in Eilat and went diving", "Went to the Dead Sea and floated", "החופש הגדול = 'the big holiday', the Israeli summer holidays. נסענו, שחינו: past tense 'we' ends in נו."],
+    ["Where are you? “נא להציג דרכון וכרטיס עלייה למטוס”", "At the airport", "At a hotel", "At a train station", "At a museum", "כרטיס עלייה למטוס = boarding pass. נא + infinitive is 'please…' on official signs."],
+    ["The word מלון can mean…", "Hotel or melon", "Hotel or dictionary", "Melon or lemon", "Hotel or hostel", "מָלוֹן (malon) = hotel and מֶלוֹן (melon) = melon. Same letters! A dictionary is a מילון (milon)."],
+    ["How do you say 'a return ticket'?", "כרטיס הלוך ושוב", "כרטיס בכיוון אחד", "כרטיס מוזל", "כרטיס כניסה", "הלוך ושוב = 'there and back'. A one-way ticket is a כרטיס בכיוון אחד."],
+    ["What does “הזמנתי חדר עם נוף לים” mean?", "I booked a room with a sea view", "I want a room near the sea", "I cancelled a room with a sea view", "I complained about the sea view", "להזמין = to book or order, and also to invite! נוף = view."],
+    ["What is the complaint? “המיזוג לא עבד והחדר היה מלוכלך”", "The air conditioning didn't work and the room was dirty", "The lift didn't work and the room was small", "The TV didn't work and the room was noisy", "The shower didn't work and the room was cold", "⭐ מיזוג (אוויר) = air conditioning. מלוכלך = dirty · נקי = clean"],
+    ["What is a מזכרת?", "A souvenir", "A receipt", "A postcard", "A guidebook", "⭐ From ז.כ.ר (remember): something to remember your trip by."],
+    ["Which words mean 'abroad'?", "חוץ לארץ", "ארץ ישראל", "בבית", "על הים", "חוץ לארץ = abroad, which Israelis shorten to חו״ל (chul)."],
+    ["What does “אם יהיה לי כסף, אסע לאמריקה” mean?", "If I have money, I'll go to America", "If I'd had money, I would have gone to America", "I've got money, so I'm going to America", "I don't have money for America", "אם + future = a real 'if'. ⭐ For 'if I had', use לו or אילו: “לו היה לי כסף, הייתי נוסע.”"],
+    ["How do you ask the way to the station?", "איך מגיעים לתחנה?", "מתי מגיעה הרכבת?", "כמה עולה כרטיס?", "איפה אפשר לקנות כרטיס?", "איך מגיעים ל…? = How do you get to…? It's very natural Hebrew."],
+    ["What does לשכור רכב mean?", "To rent a car", "To buy a car", "To drive a car", "To park a car", "⭐ שכירת רכב = car rental. The same root gives שכר, meaning pay or wages."],
+  ]},
+  // ---------- Theme 3: Current and future study and employment ----------
+  { id: "school", name: "School life", icon: "🏫", q: [
+    ["At school, what is a מקצוע?", "A subject", "A teacher", "A timetable", "A break", "מקצוע = a school subject AND a profession. ⭐ מקצוע חובה = compulsory subject · מקצוע בחירה = option"],
+    ["Which subject is מדעים?", "Science", "Maths", "Geography", "Drama", "מדעים = sciences · מתמטיקה = maths · גאוגרפיה = geography · תנ״ך = Bible studies"],
+    ["What does “המקצוע האהוב עליי הוא אנגלית” mean?", "My favourite subject is English", "My worst subject is English", "I'm good at English", "My English teacher is great", "האהוב עליי = my favourite (literally 'the one loved by me'). For a feminine noun: השפה האהובה עליי."],
+    ["What is a תעודה?", "A school report or certificate", "A school uniform or tie", "A timetable or diary", "A pencil case or bag", "⭐ תעודת זהות = ID card · תעודת בגרות = school-leaving certificate"],
+    ["What is a מבחן?", "A test or exam", "A lesson", "A detention", "A school trip", "מבחן = test · ציון = mark · לעבור = to pass · ⭐ להיכשל = to fail"],
+    ["What's the rule? “אסור להשתמש בטלפון בכיתה”", "You're not allowed to use phones in class", "You must bring a phone to class", "You can use phones at break", "Phones are allowed in class", "School rules: אסור = forbidden · מותר = allowed · חובה = compulsory"],
+    ["What is a תלבושת אחידה?", "A school uniform", "A PE kit", "Fancy dress", "A school bag", "Literally 'same clothing'. Many Israeli schools just have a T-shirt with the school logo!"],
+    ["What is the הפסקה at school?", "Break time", "Lunch", "Assembly", "The end of the day", "הפסקה comes from להפסיק, to stop. A pause in lessons!"],
+    ["What does the student think? “המורה למתמטיקה מסביר טוב, אבל הוא קפדן מדי”", "Mixed: explains well but is too strict", "Positive: explains well and is kind", "Negative: explains badly and is strict", "Negative: he's never there", "Look and listen out for אבל: it often turns a positive into a negative. That makes a P+N answer."],
+    ["How do you say 'I'm good at maths'?", "אני טוב במתמטיקה", "אני אוהב מתמטיקה", "אני חלש במתמטיקה", "אני לומד מתמטיקה", "טוב ב… = good at · חלש ב… = weak at. Girls say טובה / חלשה."],
+    ["What is a חוג?", "An after-school club or class", "A school trip or outing", "A homework diary or planner", "A sports day or race", "Israeli kids go to חוגים in the afternoon: dance, football, robotics… חוג literally means 'circle'."],
+    ["What is בית ספר יסודי?", "Primary school", "Secondary school", "Boarding school", "Nursery", "יסודי = primary (from יסוד, foundation) · חטיבת ביניים = middle school · תיכון = high school"],
+    ["Before an exam, what does לחזור על החומר mean?", "To revise the material", "To forget the material", "To copy the material", "To print the material", "לחזור = to go back, so 'to go back over the material'. Revision is חזרה. 📚"],
+  ]},
+  { id: "future", name: "Post-16 & careers", icon: "🎓", q: [
+    ["What does “אני רוצה להמשיך ללמוד באוניברסיטה” mean?", "I want to carry on studying at university", "I want to stop studying", "I want to teach at a university", "I don't want to go to university", "להמשיך = to continue. מכללה = college · אוניברסיטה = university"],
+    ["What is a שרברב?", "A plumber", "A builder", "An electrician", "A carpenter", "שרברב = plumber · חשמלאי = electrician (from חשמל) · נגר = carpenter · בנאי = builder"],
+    ["What does לעבוד במשרה חלקית mean?", "To work part-time", "To work full-time", "To work overtime", "To work from home", "משרה = a job or post. משרה מלאה = full-time · משרה חלקית = part-time"],
+    ["Which job is an עורך דין?", "Lawyer", "Editor", "Doctor", "Judge", "עורך דין = lawyer, but עורך on its own means editor! A judge is a שופט."],
+    ["What is a משכורת?", "A salary", "A boss", "An interview", "An office", "⭐ Higher words: מעסיק = employer · להתפטר = to resign · לפטר = to sack"],
+    ["“בעתיד אני רוצה להיות רופא כדי לעזור לאנשים.” Why does he want to be a doctor?", "To help people", "To earn lots of money", "Because his dad is a doctor", "Because he likes science", "להיות = to be. כדי ל… = in order to. אנשים = people (the plural of איש)."],
+    ["What is a ראיון עבודה?", "A job interview", "A job advert", "Work experience", "A CV", "ראיון = interview. A CV is קורות חיים, literally 'the events of a life'!"],
+    ["What does ניסיון בעבודה mean?", "Work experience", "A work trip", "Hard work", "Working hours", "ניסיון means both experience and attempt. בעל ניסיון = experienced."],
+    ["What do many Israelis do at 18, after leaving school?", "Army service or national service", "Go straight to university", "Take a gap year in Europe", "Start A-levels", "שירות צבאי = army service · שירות לאומי = national service. Many go to university afterwards."],
+    ["How do you say 'I'd like to take a gap year'?", "הייתי רוצה לקחת שנת חופש", "אני לוקח שנת חופש", "לקחתי שנת חופש", "אני לא רוצה שנת חופש", "הייתי רוצה = I would like. A polite structure that impresses in the speaking exam!"],
+    ["What does “אני מתעניין בעיצוב” mean?", "I'm interested in design", "I'm bored of design", "I'm studying design", "I'm good at design", "להתעניין ב… = to be interested in. עניין = interest. עיצוב = design."],
+    ["“הוא עובד בבית חולים ומטפל בחולים.” Where does he work?", "In a hospital", "In a hotel", "In a school", "In a bank", "בית חולים = 'house of the sick'. לטפל ב… = to look after or treat."],
+    ["What is the בגרות?", "Israel's school-leaving exams", "A university degree", "An army rank", "A driving test", "בגרות comes from בוגר, a grown-up. A first university degree is a תואר ראשון."],
+  ]},
+  // ---------- Grammar ----------
+  { id: "verbs", name: "Verbs & binyanim", icon: "🔁", q: [
+    ["Which is the infinitive 'to write'?", "לכתוב", "כותב", "כתבתי", "אכתוב", "Infinitives start with ל: לכתוב. כותב = writes · כתבתי = I wrote · אכתוב = I will write"],
+    ["Fill the gap: “אתמול ___ לים” (Yesterday we went to the sea)", "הלכנו", "הולכים", "נלך", "הלכו", "Past tense 'we' ends in נו: הלכנו · אכלנו · ראינו"],
+    ["What does אשחק mean?", "I will play", "I played", "I'm playing", "Play!", "Future 'I' starts with א: אשחק · אלך · אכתוב"],
+    ["Which means 'they (girls) are writing'?", "הן כותבות", "הם כותבים", "הן כתבו", "היא כותבת", "Present tense has four forms: כותב (m) · כותבת (f) · כותבים (m pl) · כותבות (f pl)"],
+    ["Which verb is in the past tense?", "שמעתי", "שומע", "אשמע", "לשמוע", "Past tense 'I' ends in תי: שמעתי = I heard."],
+    ["Which binyan is מדבר (speaks)?", "Pi'el", "Pa'al", "Hif'il", "Hitpa'el", "Pi'el present is מ + the root, with a strong middle letter: מְדַבֵּר · מְבַשֵּׁל · מְטַיֵּל (the nikud shows the pattern)"],
+    ["Which binyan is להתלבש (to get dressed)?", "Hitpa'el", "Pi'el", "Hif'il", "Nif'al", "Hitpa'el often means doing something to yourself: להתלבש = to dress yourself · להתרחץ = to wash yourself"],
+    ["Which binyan is להסביר (to explain)?", "Hif'il", "Pa'al", "Hitpa'el", "Nif'al", "Hif'il infinitives start with לה and have a י before the last root letter: להסביר · להזמין · להחליט. Sneaky: להתחיל is hif'il too (root ת.ח.ל)!"],
+    ["Which binyan is נכנס (entered)?", "Nif'al", "Pa'al", "Pi'el", "Hif'il", "Nif'al often starts with נ: נכנס = entered · נשאר = stayed · נפגש = met"],
+    ["What is the root of מכתבים (letters)?", "כ.ת.ב", "מ.כ.ת", "ת.ב.י", "כ.ב.מ", "Most Hebrew words grow from a three-letter root. כ.ת.ב (write) gives: מכתב = letter · כתובת = address · כתבה = article"],
+    ["What does “היא קמה אתמול בשבע” mean?", "She got up at seven yesterday", "She'll get up at seven tomorrow", "She went to bed at seven yesterday", "She ate at seven yesterday", "קום is a 'hollow' verb: לקום · קם · קמה · קמתי · אקום"],
+    ["Fill the gap: “אתה יכול ___ לי?” (Can you help me?)", "לעזור", "עוזר", "עזרת", "עזרתי", "After יכול, רוצה, צריך and אוהב you use the infinitive: אתה יכול לעזור לי?"],
+    ["What does “תסגור את הדלת!” mean?", "Close the door!", "Open the door!", "You closed the door.", "Don't close the door!", "In everyday Hebrew, the future is used as a command: תסגור! (to a boy) · תסגרי! (to a girl)"],
+    ["Which means 'we will travel'?", "ניסע", "נסענו", "נוסעים", "לנסוע", "Future 'we' starts with נ: ניסע · נלך · נאכל"],
+    ["Why is it מצטער (sorry) and not 'מתצער'?", "In hitpa'el, the ת changes next to צ, ס, ש and ז", "It's a spelling mistake", "צ always comes first in Hebrew", "It's a pi'el verb", "⭐ After צ the ת becomes ט: מצטער. With ס and ש they swap: מסתדר · משתמש. After ז it becomes ד: מזדקן."],
+    ["Which of these is pu'al (passive)?", "מבושל", "מבשל", "בישל", "לבשל", "⭐ Pu'al is the passive of pi'el: בישל = cooked → בושל = was cooked. מבושל = cooked (adjective)."],
+    ["What does “הסרט צולם בישראל” mean?", "The film was shot in Israel", "The film shows Israel", "He filmed it in Israel", "The film will be shown in Israel", "⭐ צולם = was filmed (pu'al, from צילם). Passives often have a ו in unpointed text."],
+    ["What does “הוא הוזמן למסיבה” mean?", "He was invited to the party", "He invited them to the party", "He ordered food for the party", "He will be invited to the party", "⭐ Hof'al is the passive of hif'il: הזמין = invited → הוזמן = was invited"],
+    ["Which verb has a four-letter root?", "לבלבל", "לבשל", "לבקר", "לדבר", "⭐ Four-letter roots: ב.ל.ב.ל (confuse) · פ.ר.ס.ם (publish) · צ.ל.צ.ל (ring). They work like pi'el: מבלבל · בלבלתי"],
+    ["What does הייתי הולך mean?", "I would go / I used to go", "I went / I have gone", "I will go / I'm going to go", "I am going / I go", "היה + present tense = 'would' or 'used to': “כשהייתי קטן, הייתי הולך לגן.” (When I was little I used to go to nursery.)"],
+    ["How do you write 'I could'?", "יכולתי", "יכלתי", "יכולנו", "אוכל", "AQA's spec flags this: יכולתי (yacholti). Fun fact: אוכל can mean 'I will be able', 'eats' or 'food'!"],
+    ["What does “נפגשנו בקניון” mean?", "We met up at the mall", "We went shopping at the mall", "We'll meet at the mall", "We got lost at the mall", "להיפגש (nif'al) = to meet up. קניון = shopping mall (from קנה, to buy)."],
+    ["Which is 'you want' said to a girl?", "את רוצה", "אתה רוצה", "את רצית", "את תרצי", "את = you (girl) · אתה = you (boy). Without nikud, רוצה looks the same for both, so the pronoun matters!"],
+  ]},
+  { id: "grammar", name: "Grammar toolkit", icon: "🧩", q: [
+    ["What does אותו mean in “אני רואה אותו”?", "Him", "Her", "Them", "Me", "את + ending: אותי = me · אותך = you · אותו = him · אותה = her · אותנו = us · אותם = them"],
+    ["Which sentence is correct?", "אני אוהב את הסרט", "אני אוהב הסרט", "אני אוהב את סרט", "אני את אוהב הסרט", "את goes before a DEFINITE direct object: אוהב את הסרט. But: אוהב סרטים (no את)."],
+    ["What does לי mean in “תן לי את הספר”?", "To me", "Mine", "Me (as an object)", "With me", "ל + ending: לי · לך · לו · לה · לנו · להם"],
+    ["How do you say 'with me'?", "איתי", "שלי", "אותי", "לי", "עם + ending: איתי · איתך · איתו · איתה · איתנו"],
+    ["How do you say 'three boys'?", "שלושה ילדים", "שלוש ילדים", "שלושת ילדים", "ילדים שלוש", "Numbers flip! Masculine nouns take the form ending in ה: שלושה ילדים. AQA stresses number genders."],
+    ["How do you say 'five girls'?", "חמש ילדות", "חמישה ילדות", "חמשת ילדות", "חמש ילדים", "Feminine nouns take the shorter number: חמש ילדות · חמש שעות · חמש דקות"],
+    ["Which means 'the children's room'?", "חדר הילדים", "החדר הילדים", "החדר ילדים", "חדר ילדים ה", "In a smichut pair, ה goes on the SECOND word only: חדר הילדים · בית הספר"],
+    ["Which is the smichut form in 'breakfast'?", "ארוחת בוקר", "ארוחה בוקר", "ארוחי בוקר", "בוקר ארוחה", "Feminine ה changes to ת in smichut: ארוחה → ארוחת · שמלה → שמלת"],
+    ["How do you say 'Tel Aviv is bigger than Haifa'?", "תל אביב יותר גדולה מחיפה", "תל אביב הכי גדולה מחיפה", "תל אביב גדולה כמו חיפה", "תל אביב פחות גדולה מחיפה", "יותר… מ = more… than · פחות = less · כמו = as · הכי = most. Cities are feminine: גדולה!"],
+    ["What does הכי טעים mean?", "The tastiest", "Tastier", "Too tasty", "Not tasty", "הכי + adjective = the most: הכי טעים · הכי מעניין"],
+    ["What does “אף אחד לא בא” mean?", "Nobody came", "Everybody came", "Only one person came", "Someone came", "Hebrew uses double negatives: אף אחד לא = nobody · שום דבר לא = nothing · אף פעם לא = never"],
+    ["What does עוד לא mean?", "Not yet", "No more", "Never", "Not even", "עוד לא = not yet · כבר לא = no longer · אפילו לא = not even"],
+    ["Which connective means 'however'?", "אולם", "לכן", "למשל", "בנוסף", "אולם = however · לכן = therefore · למשל = for example · בנוסף = in addition. Connectives make writing flow!"],
+    ["Which question word means 'where to?'", "לאן", "איפה", "מאיפה", "מתי", "איפה = where · לאן = where to · מאיפה = where from"],
+    ["What does בגלל mean?", "Because of", "In spite of", "Instead of", "In order to", "⭐ בגלל + noun = because of: בגלל הגשם. למרות = despite: למרות הגשם."],
+    ["What does מישהו mean?", "Someone", "Nobody", "Everyone", "Something", "מישהו / מישהי = someone (m / f) · משהו = something"],
+    ["Which noun is feminine, even without ה or ת on the end?", "עיר", "רחוב", "ספר", "שולחן", "Irregular feminine nouns include עיר · ארץ · אבן · ציפור, and paired body parts like יד · רגל · עין."],
+    ["Which noun is masculine, even though it ends in ה?", "לילה", "ילדה", "שמלה", "תמונה", "לילה is masculine: לילה טוב, not 'לילה טובה'!"],
+    ["What is the plural of שולחן (table)?", "שולחנות", "שולחנים", "שולחניות", "שולחנה", "A masculine noun with an ות plural! Others: מקומות (places) · לילות (nights) · חלונות (windows)"],
+    ["What is the plural of אישה (woman)?", "נשים", "אישות", "אישים", "אישיות", "Irregular: אישה → נשים (and איש → אנשים). It's feminine but ends in ים!"],
+    ["What does שתי ידיים mean?", "Two hands", "Two feet", "Both eyes", "Ten fingers", "ידיים is a dual, the ending for pairs. Others: רגליים · עיניים · אוזניים · שבועיים (two weeks)"],
+    ["How do you say 'I don't have time'?", "אין לי זמן", "יש לי זמן", "לא זמן לי", "אני לא זמן", "יש לי / אין לי = I have / I don't have. In the past: היה לי / לא היה לי"],
+    ["What does אם mean in “אם ירד גשם, נישאר בבית”?", "If", "Mother", "When", "Because", "אִם (im) = if, but אֵם (em) = mother! The rest of the sentence tells you which. ירד גשם = it rains (literally 'rain comes down')."],
+  ]},
+  { id: "translate", name: "Translation", icon: "🔄", q: [
+    ["Translate: “בסוף השבוע הבא אבקר את סבתא שלי.”", "Next weekend I will visit my grandmother.", "Last weekend I visited my grandmother.", "Every weekend I visit my grandmother.", "Next weekend my grandmother will visit me.", "Watch the time words: הבא = next · שעבר = last. אבקר is future, because it starts with א."],
+    ["Translate: “לפני שנתיים נסענו לישראל בפעם הראשונה.”", "Two years ago we went to Israel for the first time.", "In two years we will go to Israel for the first time.", "Two years ago we went to Israel for the last time.", "We have lived in Israel for two years.", "שנתיים = two years (a dual). לפני = ago / before. בפעם הראשונה = for the first time."],
+    ["Translate: “אחותי הקטנה לא אוהבת ירקות, אבל היא אוכלת פירות.”", "My little sister doesn't like vegetables, but she eats fruit.", "My big sister doesn't like fruit, but she eats vegetables.", "My little sister likes vegetables and fruit.", "My little brother doesn't eat vegetables or fruit.", "Translations test the little words: לא · אבל · הקטנה. Read every word!"],
+    ["Translate: “אם יהיה מזג אוויר טוב, נלך לחוף.”", "If the weather is good, we'll go to the beach.", "When the weather was good, we went to the beach.", "If the weather is bad, we'll stay at home.", "The weather is good, so we're going to the beach.", "After אם, Hebrew uses the future where English uses the present: אם יהיה = if it is (literally 'will be')."],
+    ["Translate: “כשהייתי ילד, הייתי משחק כדורגל כל יום.”", "When I was a child, I used to play football every day.", "When I'm older, I'll play football every day.", "When I was a child, I played football once.", "As a child, I never played football.", "⭐ היה + present = used to. כש = when, and it sticks to the next word."],
+    ["Translate: “המורה ביקש מאיתנו לכתוב חיבור על החופשה.”", "The teacher asked us to write an essay about the holiday.", "The teacher wrote an essay about the holiday.", "We asked the teacher to write about the holiday.", "The teacher asked us to read about the holiday.", "ביקש מ… = asked (someone) to. מאיתנו = from us. חיבור = essay."],
+    ["Translate: 'I live in a small house in London.'", "אני גר בבית קטן בלונדון.", "אני גר בבית גדול בלונדון.", "גרתי בבית קטן בלונדון.", "אני גר בבית קטן ליד לונדון.", "ב = in, joined to the next word: בבית · בלונדון. And the adjective goes after the noun: בית קטן."],
+    ["Translate: 'Yesterday I ate pizza with my friends.'", "אתמול אכלתי פיצה עם החברים שלי.", "מחר אוכל פיצה עם החברים שלי.", "אתמול אכלנו פיצה בלי החברים שלי.", "היום אני אוכל פיצה עם החברים שלי.", "Past 'I' ends in תי: אכלתי. עם = with · בלי = without"],
+    ["Translate: 'My favourite subject is history because it's interesting.'", "המקצוע האהוב עליי הוא היסטוריה כי הוא מעניין.", "המקצוע האהוב עליי הוא היסטוריה אבל הוא משעמם.", "המקצוע הכי קשה שלי הוא היסטוריה כי הוא מעניין.", "המקצוע האהוב עליי הוא גאוגרפיה כי הוא מעניין.", "כי = because. You could also write כי זה מעניין. Both work in the exam."],
+    ["Translate: 'We have to protect the environment.'", "אנחנו צריכים להגן על הסביבה.", "אנחנו לא צריכים להגן על הסביבה.", "הגנו על הסביבה.", "הסביבה צריכה להגן עלינו.", "צריך / צריכה / צריכים + infinitive = have to. להגן על = to protect."],
+    ["Translate: 'She wants to be a doctor in the future.'", "היא רוצה להיות רופאה בעתיד.", "היא רצתה להיות רופאה בעבר.", "הוא רוצה להיות רופא בעתיד.", "היא רוצה ללכת לרופא בעתיד.", "Jobs have feminine forms: רופא → רופאה · עורך דין → עורכת דין"],
+    ["Translate: 'There isn't a cinema in my town.'", "אין קולנוע בעיר שלי.", "יש קולנוע בעיר שלי.", "הקולנוע לא נמצא בעיר שלי.", "אין לי זמן ללכת לקולנוע.", "אין = there isn't / there aren't. And Hebrew has no word for 'a'!"],
+    ["Translate: 'Last summer we stayed in a hotel near the sea.'", "בקיץ שעבר נשארנו במלון ליד הים.", "בקיץ הבא נישאר במלון ליד הים.", "בקיץ שעבר נשארנו בבית ליד הים.", "בחורף שעבר נשארנו במלון ליד הים.", "שעבר = last ('that passed') · הבא = next. נשארנו = we stayed (nif'al past)."],
+    ["Translate: “למרות שהכרטיסים היו יקרים, נהנינו מאוד מההופעה.”", "Although the tickets were expensive, we really enjoyed the show.", "Because the tickets were expensive, we didn't enjoy the show.", "The tickets were cheap and we really enjoyed the show.", "Although the tickets were cheap, we didn't enjoy the show.", "⭐ למרות ש… = although. ליהנות מ… = to enjoy: נהנינו = we enjoyed."],
+    ["Translate: “הייתי שמח לעבוד בחו״ל אחרי האוניברסיטה.”", "I would be happy to work abroad after university.", "I was happy working abroad before university.", "I'm happy to study abroad after school.", "I'll be happy when I finish university abroad.", "הייתי + adjective or verb = I would… · חו״ל = abroad"],
+    ["Translate: 'I don't like getting up early.'", "אני לא אוהב לקום מוקדם.", "אני אוהב לקום מוקדם.", "אני לא אוהב לקום מאוחר.", "לא קמתי מוקדם היום.", "מוקדם = early · מאוחר = late. אוהב + infinitive = to like doing."],
+    ["Translate: “אף פעם לא ראיתי סרט כל כך מצחיק.”", "I've never seen such a funny film.", "I always watch funny films.", "I've never seen such a sad film.", "I don't watch funny films any more.", "אף פעם לא = never · כל כך = so / such · כבר לא = no longer"],
+    ["Translate: 'My parents let me go out at weekends.'", "ההורים שלי מרשים לי לצאת בסופי שבוע.", "ההורים שלי לא מרשים לי לצאת בסופי שבוע.", "ההורים שלי יוצאים בסופי שבוע.", "אני מרשה להורים שלי לצאת.", "להרשות ל… = to let / allow (hif'il). סוף שבוע → סופי שבוע (weekends)"],
+  ]},
+  { id: "rubrics", name: "Exam instructions", icon: "📝", q: [
+    ["What does “ענו על השאלות” mean?", "Answer the questions", "Read the questions", "Write the questions", "Listen to the questions", "Exam instructions use the plural command form (ענו · כתבו · קראו), because they're talking to everyone."],
+    ["What does “בחרו בתשובה הנכונה” mean?", "Choose the correct answer", "Write the correct answer", "Correct the answer", "Complete the answer", "לבחור = to choose. נכון / נכונה = correct, true."],
+    ["What does “השלימו את הטבלה” mean?", "Complete the grid", "Read the table", "Copy the table", "Draw a table", "להשלים = to complete. You'll also see: השלימו את החסר = fill in the gaps."],
+    ["What does “תנו שני פרטים” mean?", "Give two details", "Choose two pictures", "Write two sentences", "Name two people", "לתת = to give: תנו = give! (plural). פרט / פרטים = detail / details."],
+    ["What does “הקשיבו לשיחה” mean?", "Listen to the conversation", "Read the conversation", "Act out the conversation", "Write a conversation", "להקשיב = to listen. שיחה = conversation · ראיון = interview · קטע = passage"],
+    ["What does “כתבו את האות הנכונה בכל משבצת” mean?", "Write the correct letter in each box", "Write a letter to a friend", "Write the correct word on each line", "Circle the correct letter", "אות = a letter of the alphabet, but a letter you post is a מכתב. משבצת = box."],
+    ["What does “אתם יכולים להשתמש באותה אות יותר מפעם אחת” mean?", "You can use the same letter more than once", "You can't use the same letter twice", "Use each letter only once", "You can use a dictionary", "יותר מפעם אחת = more than once. Read instructions carefully. They often give you a clue!"],
+    ["What does “לא צריך לכתוב משפטים מלאים” mean?", "You don't need to write full sentences", "You must write full sentences", "Don't write more than one sentence", "Write your answer in English", "משפט = sentence · מלא = full. Short answers are fine when this is written."],
+    ["For a positive AND negative opinion, what do you write?", "P+N", "P", "N", "X", "חיובי = positive · שלילי = negative. P = positive, N = negative, P+N = both."],
+    ["What does “תארו את התמונה” mean?", "Describe the picture", "Draw the picture", "Find the picture", "Name the picture", "לתאר = to describe. In the writing paper you might see: מה בתמונה? (What's in the photo?)"],
+    ["What does “ציינו יתרון אחד וחסרון אחד” mean?", "Mention one advantage and one disadvantage", "Mention two advantages", "Explain one problem and one solution", "Give one opinion and one fact", "לציין = to mention or state. יתרון = advantage · חסרון = disadvantage"],
+    ["What does “כתבו כ-90 מילים בעברית” mean?", "Write about 90 words in Hebrew", "Write exactly 90 words in English", "Write at least 90 sentences", "Read 90 words in Hebrew", "כ- before a number means 'about'. ⭐ Higher also has a 150-word task."],
+    ["What does “קראו את הקטע” mean?", "Read the passage", "Cut out the passage", "Translate the passage", "Listen to the passage", "קטע = passage or extract. לקרוא = to read: קראו! (plural command)"],
+  ]},
+];
+
+// =====================================================================
+//  IVRIT: Grown-up level. Hebrew is unpointed, as you'd see it in Israel.
+// =====================================================================
+QS.ivrit = QS.ivrit || {};
+QS.ivrit.notes = QS.ivrit.notes || {};
+QS.ivrit.notes.adult = "The Hebrew has no nikud, the way you'd see it on signs and in newspapers in Israel.";
+
+QS.ivrit.adult = [
+  { id: "slang", name: "Slang & idioms", icon: "😎", q: [
+    ["What does סבבה mean?", "Cool / OK", "Grandma", "Expensive", "Nonsense", "It comes from Arabic. סבבה, אחלה and יאללה might be the three most Israeli words there are!"],
+    ["What does יאללה mean?", "Come on / let's go", "Oh my God", "Calm down", "Goodbye forever", "From Arabic. Many Israelis end phone calls with 'יאללה ביי'."],
+    ["What does אחלה mean?", "Great / excellent", "Sweet-toothed", "Cheap", "Sorry", "From Arabic, where it means 'nicer' or 'sweeter'. אחלה גבר = a great guy."],
+    ["In slang, what does חבל על הזמן mean?", "Amazing, out of this world", "Hurry up, we're late", "It's too late now", "What a pity, never mind", "Literally 'a shame about the time'. It can mean a waste of time, but in slang it means something's too good for words."],
+    ["What does תכלס mean?", "Bottom line / in practice", "Sky blue / turquoise", "Never mind / forget it", "Excuse me / sorry", "From Yiddish 'tachles', which comes from Hebrew תכלית (purpose). Sky blue is תכלת, nearly the same letters!"],
+    ["What is a פדיחה?", "An embarrassing moment", "A brilliant idea", "A terrible traffic jam", "A real bargain", "From Arabic 'fadiha' (a scandal). “איזו פדיחה!” = How embarrassing!"],
+    ["What is a בלגן?", "A mess / chaos", "A balcony", "A bagel", "A ballgame", "It came via Russian (originally from Persian). It covers anything from a messy bedroom to the traffic on Ayalon."],
+    ["What does סחתיין mean?", "Well done! Good for you!", "Bless you! Gesundheit!", "Get lost! Go away!", "Cheers! To life!", "From Arabic 'sahtein' (two healths). In Arabic it's said over a meal, like 'bon appétit'."],
+    ["What does על הפנים mean?", "Terrible, awful", "Amazing", "Obvious", "In your face", "Literally 'on the face': so bad it's fallen flat on its face. “איך היה המבחן?” “על הפנים.”"],
+    ["What does קטן עליי mean?", "No problem, that's easy for me", "I'm too small for this", "That's my little one", "Leave me alone, please", "Literally 'small on me': the task is too small to worry me."],
+    ["What does לעשות חיים mean?", "To have a great time", "To earn a living", "To give birth", "To make a will", "Literally 'to make life'. Earning a living is להתפרנס."],
+    ["What is a דוגרי person?", "Straight-talking and blunt", "Lazy and laid-back", "Very rich and generous", "Always late for everything", "From Arabic and Turkish 'dughri' (straight). Israeli directness has its own word, and it's a compliment!"],
+    ["What does יש מצב mean?", "There's a chance / maybe", "There's a problem", "It's an emergency", "No way", "Literally 'there's a situation'. “יש מצב שנגיע מאוחר.” = We might be late. And אין מצב = no way!"],
+    ["What does כפרה עליך mean?", "You're a sweetheart", "Shame on you", "I forgive you", "Bless you", "Literally 'may I be your atonement'. From Mizrahi Hebrew and Arabic, it's now an affectionate 'love you, mate'."],
+    ["What does לך תדע mean?", "Who knows?", "Go and learn!", "You should know", "Go away!", "Literally 'go and know'. A shrug in two words. 🤷"],
+  ]},
+  { id: "roots", name: "Roots & word-building", icon: "🌱", q: [
+    ["Which of these is NOT from the root ח.ש.ב (think / calculate)?", "חשמל", "מחשב", "חשבון", "מחשבה", "מחשב = computer · חשבון = bill · מחשבה = thought. חשמל (electricity) is its own word, revived from the Book of Ezekiel."],
+    ["What do מגדל, גדול and גודל share?", "The root ג.ד.ל: grow, be big", "The root מ.ג.ד", "They're all loanwords", "They all mean 'tower'", "מגדל = tower · גדול = big · גודל = size · לגדל = to raise. One root, lots of words."],
+    ["What do מספרה, מאפייה and מכבסה have in common?", "They're all places where something is done", "They're all people who do a job", "They're all tools", "They're all feelings", "מספרה = hairdresser's (ס.פ.ר = cut hair) · מאפייה = bakery · מכבסה = laundry. The מ_ _ _ה pattern often means a place."],
+    ["What do נגר · טבח · צלם have in common?", "They're all trades with the same word pattern", "They all start with the same root", "They're all borrowed from Arabic", "They're all places", "The קַטָּל pattern is for trades: נַגָּר (carpenter) · טַבָּח (cook) · צַלָּם (photographer) · סַפָּר (barber)"],
+    ["Which binyan usually makes a verb causative ('make someone do')?", "Hif'il", "Nif'al", "Pu'al", "Hitpa'el", "אכל (eat) → האכיל (feed) · לבש (wear) → הלביש (dress someone) · רקד (dance) → הרקיד (get people dancing)"],
+    ["If לשבור = to break, what is להישבר?", "To get broken", "To break something on purpose", "To fix", "To break again and again", "Nif'al is often passive or 'happens by itself': “הכוס נשברה.” = The glass broke."],
+    ["What did the Academy coin the word מרשתת for?", "The internet", "A fishing net", "A network cable", "A hairnet", "From רשת (net). It's official, but almost everyone just says אינטרנט!"],
+    ["Which word shares a root with שלום?", "שלם (whole)", "שולחן (table)", "שלוש (three)", "שלג (snow)", "ש.ל.ם gives שלום (peace) · שלם (whole) · לשלם (to pay) · תשלום (payment). Peace as wholeness."],
+    ["What is the root of התכתבות (correspondence)?", "כ.ת.ב", "ת.כ.ת", "ה.ת.כ", "כ.ת.ת", "Strip off the הת at the front and the ות at the end and you're left with כ.ת.ב: writing to each other."],
+    ["What do דרכון (passport) and מדרכה (pavement) share?", "The root ד.ר.כ: way, path", "They're both English loanwords", "They both come from דרום (south)", "Nothing, it's a coincidence", "ד.ר.כ gives דרך (way) · מדרכה (pavement) · דרכון (a document for the road) · מדריך (guide)"],
+    ["What does hitpa'el often add to a verb?", "Doing it to yourself or to each other", "Doing it in the future", "Making someone else do it", "Doing it badly", "התלבש = he dressed himself · התכתבו = they wrote to each other · התחבקו = they hugged"],
+    ["Which everyday word came into Hebrew from Aramaic?", "אבא", "אח", "בית", "ילד", "אבא and אמא are Aramaic: Biblical Hebrew says אב and אם. סבא comes from Aramaic too."],
+    ["Which Israeli slang word comes from Yiddish?", "פראייר", "סבבה", "יאללה", "אחלה", "A פראייר is a sucker, someone who gets taken advantage of. Not being a פראייר is almost a national value!"],
+    ["What did the Hebrew word עיתון (newspaper) grow out of?", "עת: a time or period", "עט: a pen", "עתיק: ancient", "תן: give", "A newspaper comes out at regular times, so עיתון is a 'periodical'. Others: מילון (dictionary) from מילה (word)."],
+  ]},
+  { id: "story", name: "The story of Hebrew", icon: "📜", q: [
+    ["Roughly when did Hebrew stop being anyone's everyday mother tongue, before its revival?", "Around 200 CE, about the time of the Mishnah", "Around 1000 BCE, in King David's time", "Around 1492, after the Spanish expulsion", "Around 1800", "For the next 1,700 years Hebrew lived on in prayer, study, poetry and letters, but nobody grew up speaking it."],
+    ["Who is often called the first native speaker of Modern Hebrew (born 1882)?", "Itamar Ben-Avi", "Eliezer Ben-Yehuda", "Chaim Nachman Bialik", "Theodor Herzl", "Ben-Yehuda's son was raised hearing only Hebrew, and is often called 'the first Hebrew child'."],
+    ["Which body decides official Hebrew words and spellings today?", "The Academy of the Hebrew Language", "The Ministry of Education", "The Chief Rabbinate", "The Hebrew University", "האקדמיה ללשון העברית was founded in 1953, taking over from Ben-Yehuda's Language Committee (ועד הלשון), founded in 1890."],
+    ["What was the 'War of the Languages' in 1913?", "A row over whether the Technion would teach in German or Hebrew", "A border war between the Ottomans and Egypt", "A battle between rival Yiddish and Hebrew newspapers", "A dispute over writing Hebrew in Latin letters", "Teachers and students went on strike, and Hebrew won. It became the language of the Yishuv's schools."],
+    ["Which pronunciation tradition did Modern Hebrew mainly follow?", "Sephardi", "Ashkenazi", "Yemenite", "Samaritan", "Modern Hebrew uses Sephardi vowels and stress: Shabbat, not Shabbos. Its accent, though, was shaped by European speakers."],
+    ["What is כתיב מלא?", "Spelling without nikud, adding ו and י to show vowels", "Spelling with every vowel point written in", "Joined-up handwriting for letters and notes", "Writing Hebrew words in Latin letters", "Without vowel points, extra letters help you read: שֻׁלְחָן → שולחן. A consonant ו is doubled: תקווה."],
+    ["What language is most of the Gemara written in?", "Aramaic", "Hebrew", "Greek", "Arabic", "The Mishnah is in Hebrew, but the Babylonian Gemara is mostly Jewish Babylonian Aramaic."],
+    ["The Hebrew word חשמל (electricity) was taken from which book?", "Ezekiel", "Genesis", "Psalms", "Job", "Ezekiel's vision describes something gleaming like חשמל. The poet Yehuda Leib Gordon is credited with using it for electricity."],
+    ["Where did the square Hebrew letters used today come from?", "The Aramaic script", "The Greek alphabet", "Egyptian hieroglyphs", "The Arabic script", "Older Paleo-Hebrew letters appear on ancient coins. The Talmud calls the square script כתב אשורית."],
+    ["Where does modern Hebrew handwriting (cursive) come from?", "Ashkenazi handwriting traditions", "Rashi script", "Ancient Paleo-Hebrew", "The Arabic script", "Israeli cursive grew out of Central and Eastern European Jewish handwriting. Rashi script is a separate, Sephardi-based semi-cursive."],
+    ["Israel's Hebrew Language Day falls on whose birthday?", "Eliezer Ben-Yehuda", "Theodor Herzl", "David Ben-Gurion", "Chaim Weizmann", "יום השפה העברית is on 21 Tevet, Ben-Yehuda's birthday."],
+    ["Who is often called Israel's national poet?", "Chaim Nachman Bialik", "Yehuda Amichai", "Rachel the Poetess", "Naomi Shemer", "Bialik's first published poem was אל הציפור (To the Bird), in 1892, long before Hebrew was widely spoken again."],
+    ["Who wrote ירושלים של זהב?", "Naomi Shemer", "Ofra Haza", "Arik Einstein", "Leah Goldberg", "It was written for the 1967 Israel Song Festival, three weeks before the Six-Day War."],
+  ]},
+  { id: "israel", name: "Living in Israel", icon: "🏛️", q: [
+    ["What is a תעודת זהות?", "An ID card", "A driving licence", "A passport", "A birth certificate", "Israelis carry a תעודת זהות, and its number is asked for everywhere, from the bank to booking a doctor."],
+    ["What is a קופת חולים?", "A health fund that provides your doctors", "A ward in a public hospital", "A chain of chemists' shops", "A sick note from your employer", "Everyone belongs to one of four: Clalit, Maccabi, Meuhedet or Leumit."],
+    ["What is ארנונה?", "Council tax", "Rent", "The electricity bill", "Income tax", "ארנונה is paid to the local council, and is worked out from the size of your home."],
+    ["What is an אולפן?", "An intensive Hebrew course for new immigrants", "The dining hall on a kibbutz", "A Hebrew dictionary for learners", "The citizenship test for new arrivals", "The first ulpan opened in Jerusalem in 1949. Confusingly, אולפן also means a TV or recording studio!"],
+    ["What is an עולה חדש?", "A new immigrant", "A newly-wed", "A new soldier", "A new student", "עולה = 'one who goes up'. Moving to Israel is עלייה, 'going up'."],
+    ["What is סל קליטה?", "Financial help for new immigrants", "A welcome food hamper", "A recycling bin", "A shopping basket", "Literally an 'absorption basket': payments to help olim settle in during their first months."],
+    ["What is מס הכנסה?", "Income tax", "Customs duty", "VAT", "Council tax", "מס = tax. VAT is מע״מ, short for מס ערך מוסף."],
+    ["What is a משכנתא?", "A mortgage", "A tenancy agreement", "A neighbour", "A building permit", "It's an Aramaic word, and it appears in the Talmud for a pledge on property!"],
+    ["On a shop sign, what does יום א׳ mean?", "Sunday", "Monday", "The first of the month", "A public holiday", "Days are lettered: א׳ = Sunday, ב׳ = Monday … ו׳ = Friday. Opening hours often say א׳–ה׳ for Sunday to Thursday."],
+    ["What is מוצ״ש?", "Saturday night, after Shabbat", "Friday afternoon", "The end of the month", "A public holiday", "Short for מוצאי שבת: 'the going-out of Shabbat'."],
+    ["What does קבעתי תור mean?", "I made an appointment", "I joined a club", "I paid a bill", "I signed a contract", "תור = an appointment slot or a queue. (It's also a turtledove!)"],
+    ["What is a שמרטף?", "A babysitter", "A security guard", "A lifeguard", "A caretaker", "A blend of שומר (guard) and טף (little ones)."],
+    ["In Israel, what is a טרמפ?", "A lift (hitchhiking)", "A trump card", "A trampoline", "A tram", "You 'catch' one: לתפוס טרמפ. The stops where people wait for lifts are called טרמפיאדות."],
+  ]},
+  { id: "tricky", name: "Tricky Hebrew", icon: "🧠", q: [
+    ["What does צה״ל stand for?", "Israel Defence Forces", "Israel Police", "The Jewish Agency", "The Knesset Guard", "צבא הגנה לישראל: 'the Defence Army for Israel'."],
+    ["What does ש״ח stand for?", "New (Israeli) Shekel", "Shabbat and festivals", "Shalom, friends", "School hours", "שקל חדש. The new shekel replaced the old one in 1985."],
+    ["What is a דו״ח, for example from a parking warden?", "A report, or a fine", "A receipt", "A warning sign", "A parking permit", "Short for דין וחשבון ('law and account'), a report. A parking ticket is a דו״ח חנייה."],
+    ["Which is correct for 'two shekels'?", "שני שקלים", "שתי שקלים", "שתיים שקלים", "שני שקל", "שקל is masculine: שני שקלים. But 'two hours' is שתי שעות, because שעה is feminine."],
+    ["Which is correct for 'I have two daughters'?", "יש לי שתי בנות", "יש לי שני בנות", "יש לי שתיים בנות", "יש לי בנות שתיים", "שתיים becomes שתי before a noun: שתי בנות. Masculine: שני בנים."],
+    ["Which is standard Hebrew for 'I'll say'?", "אני אגיד", "אני יגיד", "אני יאמר", "אני אמרתי", "Using י instead of א for 'I will' (אני יגיד) is very common in speech, and teachers love correcting it!"],
+    ["Which is correct for 'I went to the doctor'?", "הלכתי לרופא", "הלכתי אצל הרופא", "הלכתי בשביל הרופא", "הלכתי ברופא", "Going TO someone takes ל: הלכתי לרופא. Being AT someone's is אצל: הייתי אצל הרופא."],
+    ["What does וכו׳ mean?", "etc.", "i.e.", "e.g.", "p.s.", "Short for וכולי ('and all'). i.e. is כלומר or ז״א, and e.g. is למשל or לדוגמה."],
+    ["What is ביה״ס short for?", "בית הספר (the school)", "בית החולים (the hospital)", "בית הכנסת (the synagogue)", "בית הסוהר (the prison)", "Abbreviations are everywhere: ביה״ס = school · בי״ח = hospital · ביהכ״נ = synagogue · ת״א = Tel Aviv"],
+    ["Which is the Academy's spelling of 'hope' (without nikud)?", "תקווה", "תקוה", "תיקווה", "טקווה", "In unpointed spelling, a consonant ו in the middle of a word is doubled: תקווה · מצווה · שווה"],
+    ["What does אחה״צ mean?", "Afternoon", "Tomorrow evening", "After the holidays", "Before noon", "אחר הצהריים = after midday. Before noon is לפנה״צ: לפני הצהריים."],
+    ["In gematria, what is the value of י?", "10", "1", "5", "100", "That's why 15 is written ט״ו (9 + 6) and 16 is ט״ז (9 + 7): to avoid spelling part of God's name."],
+    ["Which word is masculine?", "שולחן", "עיר", "ארץ", "רגל", "עיר, ארץ and רגל are all feminine, though none ends in ה or ת. Even fluent speakers trip on these!"],
+  ]},
+];
+
 
 // Maths questions are made up fresh every time, so they never run out.
 const MATHS = (() => {
@@ -842,6 +1358,7 @@ const TOPICS = [
   { id: 'history',   name: 'History',          icon: '🏰', colour: '#c0843a' },
   { id: 'space',     name: 'Space',            icon: '🚀', colour: '#5a4fcf' },
   { id: 'words',     name: 'Words',            icon: '📚', colour: '#e05a8a' },
+  { id: 'ivrit',     name: 'Ivrit',            icon: '🇮🇱', colour: '#1550c8', he: 'עִבְרִית' },
   { id: 'maths',     name: 'Maths',            icon: '🔢', colour: '#f0a020' },
   { id: 'sport',     name: 'Sport',            icon: '⚽', colour: '#2e9e4a' },
   { id: 'mixed',     name: 'Mixed Bag',        icon: '🎲', colour: '#7a6fa0' },
@@ -855,6 +1372,40 @@ const shuffle = a => { const b = a.slice(); for (let i = b.length - 1; i > 0; i-
 const pick = a => a[Math.floor(Math.random() * a.length)];
 const uid = () => Math.random().toString(36).slice(2, 9);
 const topicById = id => TOPICS.find(t => t.id === id);
+
+// ---------- Hebrew inside English text ----------
+// Hebrew runs right-to-left, so each bit of Hebrew in an English sentence is wrapped in its own
+// right-to-left box. Text with no English letters at all is shown right-to-left as a whole.
+// Tip for writing questions: put Hebrew sentences in curly quotes “like this”, with their own
+// punctuation inside the quotes.
+const HE_LETTER = /[א-ת]/, LATIN = /[A-Za-z]/;
+const HE_RUN = /[א-תיִ-ﭏ](?:[֑-״יִ-ﭏ0-9  ,.:;!?_…%-]*[֑-״יִ-ﭏ0-9…])?/g;
+function heRuns(s) {
+  const out = []; let m;
+  HE_RUN.lastIndex = 0;
+  while ((m = HE_RUN.exec(s))) {
+    let a = m.index, b = a + m[0].length;
+    const tail = /^[ _.?!,:;…]*(?=[”’])/.exec(s.slice(b)); if (tail) b += tail[0].length; // punctuation before a closing quote
+    const head = /[“‘]([ _…]+)$/.exec(s.slice(0, a)); if (head) a -= head[1].length;        // a gap right after an opening quote
+    if (s[a - 1] === '“' && s[b] === '”') { a--; b++; }                                   // quoted Hebrew keeps its quotes, so they wrap the right way
+    out.push([a, b]);
+    HE_RUN.lastIndex = b;
+  }
+  return out;
+}
+const textDir = s => LATIN.test(s) ? 'ltr' : HE_LETTER.test(s) ? 'rtl' : 'ltr';
+function fmt(s) {
+  s = String(s);
+  if (!HE_LETTER.test(s)) return esc(s);
+  if (!LATIN.test(s)) return `<span class="he" dir="rtl">${esc(s)}</span>`;
+  let out = '', last = 0;
+  for (const [a, b] of heRuns(s)) {
+    const he = s.slice(a, b).replace(/^“|”$/g, '"'); // curly quotes would look back-to-front inside right-to-left text
+    out += esc(s.slice(last, a)) + `<bdi class="he" dir="rtl">${esc(he)}</bdi>`;
+    last = b;
+  }
+  return out + esc(s.slice(last));
+}
 
 // ---------- saving (on this device only) ----------
 const KEY = 'quizquest.v1';
@@ -898,35 +1449,72 @@ const sfx = {
 };
 const canSpeak = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
 const stripEmoji = s => s.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}\u{2B50}\u{2B55}]/gu, '').replace(/\s+/g, ' ').trim();
-function speak(text) {
+let voiceEN = null, voiceHE = null;
+function loadVoices() {
+  if (!canSpeak) return;
+  try {
+    const vs = speechSynthesis.getVoices();
+    voiceEN = vs.find(v => /en-GB/i.test(v.lang)) || vs.find(v => /^en/i.test(v.lang)) || null;
+    voiceHE = vs.find(v => /^(he|iw)\b/i.test(v.lang)) || null;
+  } catch (e) {}
+}
+// English is read with an English voice and any Hebrew with a Hebrew voice (if the device has one).
+// opts.skipHebrew: leave the Hebrew out. opts.onlyHebrew: read just the Hebrew, a bit slower.
+function speak(text, opts) {
+  opts = opts || {};
   if (!canSpeak || !S.sound) return;
   try {
     speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(stripEmoji(text).replace(/−/g, 'minus ').replace(/×/g, 'times').replace(/÷/g, 'divided by').replace(/√/g, 'the square root of '));
-    const voices = speechSynthesis.getVoices();
-    const v = voices.find(v => /en-GB/i.test(v.lang)) || voices.find(v => /^en/i.test(v.lang));
-    if (v) u.voice = v;
-    u.rate = 0.92; u.lang = (v && v.lang) || 'en-GB';
-    speechSynthesis.speak(u);
+    loadVoices();
+    const s = String(text), parts = [];
+    let last = 0;
+    for (const [a, b] of HE_LETTER.test(s) ? heRuns(s) : []) { parts.push({ t: s.slice(last, a) }, { t: s.slice(a, b), he: true }); last = b; }
+    parts.push({ t: s.slice(last) });
+    for (const p of parts) {
+      let u;
+      if (p.he) {
+        if (opts.skipHebrew || (!voiceHE && !opts.onlyHebrew)) continue;
+        u = new SpeechSynthesisUtterance(p.t);
+        if (voiceHE) u.voice = voiceHE;
+        u.lang = (voiceHE && voiceHE.lang) || 'he-IL';
+        u.rate = opts.onlyHebrew ? 0.8 : 0.88;
+      } else {
+        if (opts.onlyHebrew) continue;
+        const t = stripEmoji(p.t).replace(/−/g, 'minus ').replace(/×/g, 'times').replace(/÷/g, 'divided by').replace(/√/g, 'the square root of ');
+        if (!/[A-Za-z0-9]/.test(t)) continue;
+        u = new SpeechSynthesisUtterance(t);
+        if (voiceEN) u.voice = voiceEN;
+        u.lang = (voiceEN && voiceEN.lang) || 'en-GB';
+        u.rate = 0.92;
+      }
+      speechSynthesis.speak(u);
+    }
   } catch (e) {}
 }
 function stopSpeaking() { if (canSpeak) try { speechSynthesis.cancel(); } catch (e) {} }
 
 // ---------- question picking ----------
-function makeQuestion(raw, id, topic) {
+function makeQuestion(raw, id, topic, sec) {
   const [text, correct, w1, w2, w3, fact] = raw;
-  return { id, topic, text, correct, fact, options: shuffle([correct, w1, w2, w3]) };
+  return { id, topic, sec: sec || null, text, correct, fact, options: shuffle([correct, w1, w2, w3]) };
 }
-function poolFor(topic, level) {
+const hasSections = (topic, level) => !!(QS[topic] && QS[topic][level] && QS[topic][level].length);
+const sectionOf = (topic, level, id) => (id && hasSections(topic, level) && QS[topic][level].find(s => s.id === id)) || null;
+const bestKey = (pid, topic, section, level) => `${pid}|${topic}${section ? '/' + section : ''}|${level}`;
+function poolFor(topic, level, section) {
+  if (hasSections(topic, level)) {
+    return QS[topic][level].filter(s => !section || s.id === section)
+      .flatMap(s => s.q.map((raw, i) => ({ raw, id: `${topic}.${level}.${s.id}.${i}`, sec: s })));
+  }
   if (!QB[topic] || !QB[topic][level]) return [];
   return QB[topic][level].map((raw, i) => ({ raw, id: `${topic}.${level}.${i}` }));
 }
 // least-recently-seen first, so questions don't repeat until you've seen them all
-function drawFromPool(topic, level, used) {
-  const pool = poolFor(topic, level).filter(x => !used.has(x.id));
+function drawFromPool(topic, level, used, section) {
+  const pool = poolFor(topic, level, section).filter(x => !used.has(x.id));
   if (!pool.length) return null;
   const best = shuffle(pool).sort((a, b) => (S.seen[a.id] || 0) - (S.seen[b.id] || 0))[0];
-  return makeQuestion(best.raw, best.id, topic);
+  return makeQuestion(best.raw, best.id, topic, best.sec);
 }
 function drawMaths(level, used) {
   for (let i = 0; i < 30; i++) {
@@ -935,10 +1523,11 @@ function drawMaths(level, used) {
   }
   const raw = MATHS.generate(level); return makeQuestion(raw, 'maths:' + raw[0] + Math.random(), 'maths');
 }
-function drawOne(topic, level, used) {
+function drawOne(topic, level, used, section) {
   let t = topic;
   if (t === 'mixed') t = pick(TOPICS.filter(x => x.id !== 'mixed')).id;
-  let q = t === 'maths' ? drawMaths(level, used) : drawFromPool(t, level, used);
+  let q = t === 'maths' ? drawMaths(level, used) : drawFromPool(t, level, used, section);
+  if (!q && section) q = drawFromPool(t, level, used); // section used up: rest of the same topic
   if (!q) { // ran out in this topic: fall back to any topic
     for (const tt of shuffle(TOPICS.filter(x => x.id !== 'mixed' && x.id !== 'maths'))) { q = drawFromPool(tt.id, level, used); if (q) break; }
     if (!q) q = drawMaths(level, used);
@@ -948,7 +1537,7 @@ function drawOne(topic, level, used) {
 }
 
 // ---------- screens ----------
-let screen = 'home', Q = null, pickedPlayer = null, pickedLevel = null;
+let screen = 'home', Q = null, pickedPlayer = null, pickedLevel = null, pickedTopic = null;
 const main = $('main');
 function setBar(title, back) {
   $('barTitle').textContent = title;
@@ -1026,18 +1615,44 @@ function renderTopics() {
     <p class="sub">Pick a topic for 10 questions.</p>
     <div class="chips">${Object.entries(LEVELS).map(([k, l]) => `<button class="chip ${pickedLevel === k ? 'on' : ''}" data-k="${k}">${l.label}${k === p.level ? ' ✓' : ''}</button>`).join('')}</div>
     <div class="tgrid" style="margin-top:12px">${TOPICS.map(t => {
-      const b = S.best[`${p.id}|${t.id}|${pickedLevel}`] || 0;
-      return `<button class="card tcard" style="--c:${t.colour}" data-t="${t.id}"><div class="ic">${t.icon}</div><div class="nm">${t.name}</div><div class="st" style="color:${b ? '#f0a020' : '#c9c4ee'}">${starStr(b)}</div></button>`;
+      const b = S.best[bestKey(p.id, t.id, null, pickedLevel)] || 0;
+      return `<button class="card tcard" style="--c:${t.colour}" data-t="${t.id}"><div class="ic">${t.icon}</div><div class="nm">${t.name}</div>${t.he ? `<div class="hes">${fmt(t.he)}</div>` : ''}<div class="st" style="color:${b ? '#f0a020' : '#c9c4ee'}">${starStr(b)}</div></button>`;
     }).join('')}</div>`;
   main.querySelectorAll('[data-k]').forEach(b => b.onclick = () => { pickedLevel = b.dataset.k; renderTopics(); });
-  main.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { initAudio(); startSolo(p, b.dataset.t, pickedLevel); });
+  main.querySelectorAll('[data-t]').forEach(b => b.onclick = () => {
+    initAudio();
+    if (hasSections(b.dataset.t, pickedLevel)) { sfx.tap(); pickedTopic = b.dataset.t; go(renderSections); }
+    else startSolo(p, b.dataset.t, pickedLevel);
+  });
+}
+
+// topics like Ivrit have sections: practise one, or a bit of everything
+function renderSections() {
+  screen = 'sections';
+  const p = pickedPlayer, t = topicById(pickedTopic), lv = pickedLevel;
+  if (!hasSections(t.id, lv)) { go(renderTopics); return; }
+  const secs = QS[t.id][lv], note = QS[t.id].notes && QS[t.id].notes[lv];
+  const total = secs.reduce((n, s) => n + s.q.length, 0);
+  const card = (sid, icon, name, n, extra) => {
+    const b = S.best[bestKey(p.id, t.id, sid, lv)] || 0;
+    return `<button class="card tcard ${extra || ''}" style="--c:${t.colour}" data-s="${sid || ''}"><div class="ic">${icon}</div><div class="nm">${esc(name)}</div><div class="tiny">${n} questions</div><div class="st" style="color:${b ? '#f0a020' : '#c9c4ee'}">${starStr(b)}</div></button>`;
+  };
+  setBar(`${t.name}`, () => go(renderTopics));
+  main.innerHTML = `
+    <h1>${t.icon} ${esc(t.name)}${t.he ? ` · ${fmt(t.he)}` : ''}</h1>
+    <p class="sub">${p.avatar} ${esc(nameOf(p))}: pick a section, or try a bit of everything.</p>
+    <div class="chips">${Object.entries(LEVELS).map(([k, l]) => `<button class="chip ${lv === k ? 'on' : ''}" data-k="${k}">${l.label}${k === p.level ? ' ✓' : ''}</button>`).join('')}</div>
+    ${note ? `<p class="note" style="margin:4px 0 14px">${fmt(note)}</p>` : ''}
+    <div class="tgrid">${card(null, '🎲', 'A bit of everything', total, 'all')}${secs.map(s => card(s.id, s.icon, s.name, s.q.length)).join('')}</div>`;
+  main.querySelectorAll('[data-k]').forEach(b => b.onclick = () => { pickedLevel = b.dataset.k; renderSections(); });
+  main.querySelectorAll('[data-s]').forEach(b => b.onclick = () => { initAudio(); startSolo(p, t.id, lv, b.dataset.s || null); });
 }
 
 // ---------- solo quiz ----------
-function startSolo(player, topic, level) {
+function startSolo(player, topic, level, section) {
   const used = new Set(), list = [];
-  for (let i = 0; i < CONFIG.soloQuestions; i++) list.push(drawOne(topic, level, used));
-  Q = { mode: 'solo', player, topic, level, list, i: 0, score: 0, streak: 0, results: [], answered: false };
+  for (let i = 0; i < CONFIG.soloQuestions; i++) list.push(drawOne(topic, level, used, section));
+  Q = { mode: 'solo', player, topic, level, section: section || null, list, i: 0, score: 0, streak: 0, results: [], answered: false };
   go(renderQuestion);
 }
 
@@ -1048,6 +1663,7 @@ function currentLevel() { return Q.mode === 'solo' ? Q.level : currentPlayer().l
 function renderQuestion() {
   screen = 'question';
   const q = currentQ(), p = currentPlayer(), t = topicById(q.topic), lv = LEVELS[currentLevel()];
+  const quiet = !!(q.sec && q.sec.quiet);
   S.seen[q.id] = Date.now(); save();
   const header = Q.mode === 'solo'
     ? `<div class="progress">${Q.list.map((_, i) => `<span class="dot ${i < Q.i ? (Q.results[i] ? 'ok' : 'no') : i === Q.i ? 'now' : ''}"></span>`).join('')}</div>`
@@ -1059,14 +1675,16 @@ function renderQuestion() {
       <div>${Q.mode === 'solo' ? `<b>${Q.score}</b> / ${Q.list.length}` : `<b>${Q.scores[p.id]}</b> pts`}${Q.streak >= 3 && Q.mode === 'solo' ? ` <span class="streak">🔥 ${Q.streak}</span>` : ''}</div>
     </div>
     <div class="card qcard">
-      <div class="qmeta"><span class="badge" style="background:${t.colour}">${t.icon} ${t.name}</span><span class="badge" style="background:${lv.colour}">${lv.label}</span></div>
-      <div class="qtext">${esc(q.text)}</div>
-      ${canSpeak ? `<div class="readrow"><button class="readbtn" id="readBtn">🔊 Read it to me</button></div>` : ''}
-      <div class="answers">${q.options.map((o, i) => `<button class="ans" data-i="${i}"><span class="l">${'ABCD'[i]}</span><span>${esc(o)}</span></button>`).join('')}</div>
+      <div class="qmeta"><span class="badge" style="background:${t.colour}">${t.icon} ${t.name}</span>${q.sec ? `<span class="badge" style="background:#7d78a3">${q.sec.icon} ${esc(q.sec.name)}</span>` : ''}<span class="badge" style="background:${lv.colour}">${lv.label}</span></div>
+      <div class="qtext">${fmt(q.text)}</div>
+      ${canSpeak ? `<div class="readrow"><button class="readbtn" id="readBtn">🔊 Read it to me</button>${q.sec && !quiet && HE_LETTER.test(q.text) ? `<button class="readbtn" id="heBtn">🗣️ Hear the Hebrew</button>` : ''}</div>` : ''}
+      <div class="answers">${q.options.map((o, i) => `<button class="ans" data-i="${i}"><span class="l">${'ABCD'[i]}</span><span dir="${textDir(o)}">${fmt(o)}</span></button>`).join('')}</div>
       <div id="fb"></div>
     </div>`;
-  const readAll = () => speak(`${q.text}. ${q.options.map((o, i) => `${'ABCD'[i]}: ${o}.`).join(' ')}`);
+  // in "quiet" sections (reading letters), hearing the Hebrew would give the answer away, so it's only said after answering
+  const readAll = () => speak(`${q.text}. ${q.options.map((o, i) => quiet && !LATIN.test(o) ? '' : `${'ABCD'[i]}: ${o}.`).join(' ')}`, { skipHebrew: quiet && !Q.answered });
   if ($('readBtn')) $('readBtn').onclick = () => { initAudio(); readAll(); };
+  if ($('heBtn')) $('heBtn').onclick = () => { initAudio(); speak(q.text, { onlyHebrew: true }); };
   main.querySelectorAll('.ans').forEach(b => b.onclick = () => answer(+b.dataset.i));
   setBar(Q.mode === 'solo' ? `Question ${Q.i + 1} of ${Q.list.length}` : 'Family Battle',
     () => showLeaveConfirm(Q.mode === 'solo' ? "Leave this quiz? This round won't be saved." : "Stop the battle? Scores won't be kept."));
@@ -1090,17 +1708,20 @@ function answer(i) {
     if (ok) { Q.score++; Q.streak++; } else Q.streak = 0;
   } else if (ok) Q.scores[p.id]++;
   ok ? sfx.right() : sfx.wrong();
-  const head = ok ? `✅ ${pick(YES)}${Q.mode === 'solo' && Q.streak >= 3 ? ` 🔥 ${Q.streak} in a row!` : ''}` : `❌ Not quite. The answer is: ${esc(q.correct)}`;
+  const head = ok ? `✅ ${pick(YES)}${Q.mode === 'solo' && Q.streak >= 3 ? ` 🔥 ${Q.streak} in a row!` : ''}` : `❌ Not quite. The answer is: ${fmt(q.correct)}`;
   const last = Q.mode === 'solo' ? Q.i === Q.list.length - 1 : (Q.turn === Q.order.length - 1 && Q.round === Q.per - 1);
+  const sayIt = canSpeak && q.sec && (HE_LETTER.test(q.text) || HE_LETTER.test(q.correct));
   $('fb').innerHTML = `
     <div class="feedback ${ok ? 'good' : 'bad'}">
       <div class="head">${head}</div>
-      ${q.fact ? `<div class="fact">💡 ${esc(q.fact)}</div>` : ''}
+      ${q.fact ? `<div class="fact">💡 ${fmt(q.fact)}</div>` : ''}
+      ${sayIt ? `<div class="readrow" style="justify-content:flex-start"><button class="readbtn" id="sayBtn">🗣️ Hear it in Hebrew</button></div>` : ''}
     </div>
     <button class="big-btn" id="nextBtn">${last ? 'See results' : 'Next →'}</button>`;
   $('nextBtn').onclick = () => { sfx.tap(); next(); };
+  if ($('sayBtn')) $('sayBtn').onclick = () => { initAudio(); speak(`${q.text} ${q.correct}`, { onlyHebrew: true }); };
   if (p.read) speak(`${ok ? 'Correct!' : 'Not quite. The answer is ' + q.correct + '.'} ${q.fact || ''}`);
-  setTimeout(() => $('fb').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+  setTimeout(() => { const f = $('fb'); if (f) f.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 50);
   // update header score
   const scoreEl = main.querySelector('.qhead > div:last-child');
   if (scoreEl) scoreEl.innerHTML = Q.mode === 'solo' ? `<b>${Q.score}</b> / ${Q.list.length}${Q.streak >= 3 ? ` <span class="streak">🔥 ${Q.streak}</span>` : ''}` : `<b>${Q.scores[p.id]}</b> pts`;
@@ -1120,8 +1741,9 @@ function next() {
 
 function renderResults() {
   screen = 'results';
-  const { player: p, topic, level, score, list } = Q, t = topicById(topic);
-  const stars = starsFor(score, list.length), key = `${p.id}|${topic}|${level}`, prev = S.best[key] || 0;
+  const { player: p, topic, level, section, score, list } = Q, t = topicById(topic), sec = sectionOf(topic, level, section);
+  const stars = starsFor(score, list.length), key = bestKey(p.id, topic, section, level), prev = S.best[key] || 0;
+  const bySection = hasSections(topic, level);
   if (stars > prev) S.best[key] = stars;
   save();
   const pct = score / list.length;
@@ -1130,18 +1752,18 @@ function renderResults() {
   setBar('Results', () => go(renderHome));
   main.innerHTML = `
     <h1>${p.avatar} ${esc(nameOf(p))}</h1>
-    <p class="sub">${t.icon} ${t.name} · ${LEVELS[level].label}</p>
+    <p class="sub">${t.icon} ${t.name}${sec ? ` · ${sec.icon} ${esc(sec.name)}` : ''} · ${LEVELS[level].label}</p>
     <div class="score-big">${score} / ${list.length}</div>
     <div class="stars-big" style="color:#f0a020">${starStr(stars)}</div>
     <div class="msg">${msg}</div>
     ${stars > prev && prev > 0 ? `<p class="sub">New best for this topic! 🎉</p>` : ''}
     <div class="btn-row">
       <button class="big-btn" id="againBtn">Play again</button>
-      <button class="big-btn alt" id="topicsBtn">Choose a topic</button>
+      <button class="big-btn alt" id="topicsBtn">${bySection ? 'Choose a section' : 'Choose a topic'}</button>
     </div>
-    ${wrong.length ? `<h2>Let's learn from these</h2>${wrong.map(q => `<div class="card review"><div class="q">${esc(q.text)}</div><div class="a">✅ ${esc(q.correct)}</div>${q.fact ? `<div class="f">💡 ${esc(q.fact)}</div>` : ''}</div>`).join('')}` : ''}`;
-  $('againBtn').onclick = () => startSolo(p, topic, level);
-  $('topicsBtn').onclick = () => go(renderTopics);
+    ${wrong.length ? `<h2>Let's learn from these</h2>${wrong.map(q => `<div class="card review"><div class="q">${fmt(q.text)}</div><div class="a">✅ ${fmt(q.correct)}</div>${q.fact ? `<div class="f">💡 ${fmt(q.fact)}</div>` : ''}</div>`).join('')}` : ''}`;
+  $('againBtn').onclick = () => startSolo(p, topic, level, section);
+  $('topicsBtn').onclick = () => { pickedPlayer = p; pickedLevel = level; pickedTopic = topic; go(bySection ? renderSections : renderTopics); };
   sfx.done();
   if (pct >= 0.8) confetti();
   if (p.read) speak(`You got ${score} out of ${list.length}. ${msg}`);
@@ -1261,7 +1883,7 @@ function confetti() {
 function showSound() { $('soundBtn').textContent = S.sound ? '🔊' : '🔇'; }
 $('soundBtn').onclick = () => { S.sound = !S.sound; if (!S.sound) stopSpeaking(); save(); showSound(); initAudio(); };
 showSound();
-if (canSpeak) { try { speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = () => {}; } catch (e) {} }
+if (canSpeak) { try { loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; } catch (e) {} }
 document.addEventListener('visibilitychange', () => { if (document.hidden) { stopSpeaking(); save(); } });
 if (S.setupDone) renderHome(); else renderPlayers();
 
