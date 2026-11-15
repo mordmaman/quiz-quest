@@ -247,6 +247,38 @@ function fmt(s) {
   return out + esc(s.slice(last));
 }
 
+// ---------- Sephardi / Ashkenazi spelling ----------
+// Yediah Klalit and Pirkei Avot are written with Sephardi transliterations (Shavuot, Avot, Beit…).
+// With the Ashkenazi setting on, these words are swapped when the questions are shown (Shavuos, Avos, Beis…).
+// To add a word, add it here in lower case: 'sephardi': 'ashkenazi'.
+const ASHK = {
+  'atzeret': 'atzeres', 'avot': 'avos', 'beit': 'beis', 'bet': 'beis', 'bereishit': 'bereishis', 'brachot': 'brachos',
+  'etrog': 'esrog', 'gemilut': 'gemilus', 'kashrut': 'kashrus', 'ketuvim': 'kesuvim', 'klalit': 'klalis',
+  'korbanot': 'korbanos', 'manot': 'manos', 'matanot': 'matanos', 'megillat': 'megillas', 'megillot': 'megillos',
+  'mishnayot': 'mishnayos', 'mitzvot': 'mitzvos', 'natan': 'nosson', 'selichot': 'selichos', 'shabbat': 'shabbos',
+  'shavuot': 'shavuos', 'shemot': 'shemos', 'simchat': 'simchas', 'sukkot': 'sukkos', "ta'anit": "ta'anis", 'tevet': 'teves',
+};
+const ASHK_RE = new RegExp(`\\b(${Object.keys(ASHK).join('|')})\\b`, 'gi');
+const SPELL_TOPICS = ['yediah', 'avot'];
+function spell(str, topic) {
+  if (!S || S.spelling !== 'ashk' || !SPELL_TOPICS.includes(topic)) return str;
+  return String(str).replace(ASHK_RE, w => {
+    const r = ASHK[w.toLowerCase()];
+    if (w.length > 1 && w === w.toUpperCase()) return r.toUpperCase();
+    return w[0] === w[0].toUpperCase() ? r[0].toUpperCase() + r.slice(1) : r;
+  });
+}
+const tName = t => spell(t.name, t.id);
+const sName = (sec, topic) => spell(sec.name, topic);
+function spellChips() {
+  const on = S.spelling === 'ashk';
+  return `<div class="label">Spelling</div>
+    <div class="chips"><button class="chip ${on ? '' : 'on'}" data-sp="seph">Sephardi · Shavuot</button><button class="chip ${on ? 'on' : ''}" data-sp="ashk">Ashkenazi · Shavuos</button></div>`;
+}
+function wireSpellChips(redraw) {
+  main.querySelectorAll('[data-sp]').forEach(b => b.onclick = () => { S.spelling = b.dataset.sp; save(); sfx.tap(); redraw(); });
+}
+
 // ---------- saving (on this device only) ----------
 const KEY = 'quizquest.v1';
 function defaultPlayers() {
@@ -335,7 +367,7 @@ function stopSpeaking() { if (canSpeak) try { speechSynthesis.cancel(); } catch 
 
 // ---------- question picking ----------
 function makeQuestion(raw, id, topic, sec) {
-  const [text, correct, w1, w2, w3, fact] = raw;
+  const [text, correct, w1, w2, w3, fact] = raw.map(x => spell(x, topic));
   return { id, topic, sec: sec || null, text, correct, fact, options: shuffle([correct, w1, w2, w3]) };
 }
 const hasSections = (topic, level) => !!(QS[topic] && QS[topic][level] && QS[topic][level].length);
@@ -456,7 +488,7 @@ function renderTopics() {
     <div class="chips">${Object.entries(LEVELS).map(([k, l]) => `<button class="chip ${pickedLevel === k ? 'on' : ''}" data-k="${k}">${l.label}${k === p.level ? ' ✓' : ''}</button>`).join('')}</div>
     <div class="tgrid" style="margin-top:12px">${TOPICS.map(t => {
       const b = S.best[bestKey(p.id, t.id, null, pickedLevel)] || 0;
-      return `<button class="card tcard" style="--c:${t.colour}" data-t="${t.id}"><div class="ic">${t.icon}</div><div class="nm">${t.name}</div>${t.he ? `<div class="hes">${fmt(t.he)}</div>` : ''}<div class="st" style="color:${b ? '#f0a020' : '#c9c4ee'}">${starStr(b)}</div></button>`;
+      return `<button class="card tcard" style="--c:${t.colour}" data-t="${t.id}"><div class="ic">${t.icon}</div><div class="nm">${tName(t)}</div>${t.he ? `<div class="hes">${fmt(t.he)}</div>` : ''}<div class="st" style="color:${b ? '#f0a020' : '#c9c4ee'}">${starStr(b)}</div></button>`;
     }).join('')}</div>`;
   main.querySelectorAll('[data-k]').forEach(b => b.onclick = () => { pickedLevel = b.dataset.k; renderTopics(); });
   main.querySelectorAll('[data-t]').forEach(b => b.onclick = () => {
@@ -477,15 +509,17 @@ function renderSections() {
     const b = S.best[bestKey(p.id, t.id, sid, lv)] || 0;
     return `<button class="card tcard ${extra || ''}" style="--c:${t.colour}" data-s="${sid || ''}"><div class="ic">${icon}</div><div class="nm">${esc(name)}</div><div class="tiny">${n} questions</div><div class="st" style="color:${b ? '#f0a020' : '#c9c4ee'}">${starStr(b)}</div></button>`;
   };
-  setBar(`${t.name}`, () => go(renderTopics));
+  setBar(tName(t), () => go(renderTopics));
   main.innerHTML = `
-    <h1>${t.icon} ${esc(t.name)}${t.he ? ` · ${fmt(t.he)}` : ''}</h1>
+    <h1>${t.icon} ${esc(tName(t))}${t.he ? ` · ${fmt(t.he)}` : ''}</h1>
     <p class="sub">${p.avatar} ${esc(nameOf(p))}: pick a section, or try a bit of everything.</p>
     <div class="chips">${Object.entries(LEVELS).map(([k, l]) => `<button class="chip ${lv === k ? 'on' : ''}" data-k="${k}">${l.label}${k === p.level ? ' ✓' : ''}</button>`).join('')}</div>
-    ${note ? `<p class="note" style="margin:4px 0 14px">${fmt(note)}</p>` : ''}
-    <div class="tgrid">${card(null, '🎲', 'A bit of everything', total, 'all')}${secs.map(s => card(s.id, s.icon, s.name, s.q.length)).join('')}</div>`;
+    ${SPELL_TOPICS.includes(t.id) ? spellChips() : ''}
+    ${note ? `<p class="note" style="margin:4px 0 14px">${fmt(spell(note, t.id))}</p>` : ''}
+    <div class="tgrid">${card(null, '🎲', 'A bit of everything', total, 'all')}${secs.map(s => card(s.id, s.icon, sName(s, t.id), s.q.length)).join('')}</div>`;
   main.querySelectorAll('[data-k]').forEach(b => b.onclick = () => { pickedLevel = b.dataset.k; renderSections(); });
   main.querySelectorAll('[data-s]').forEach(b => b.onclick = () => { initAudio(); startSolo(p, t.id, lv, b.dataset.s || null); });
+  wireSpellChips(renderSections);
 }
 
 // ---------- solo quiz ----------
@@ -515,7 +549,7 @@ function renderQuestion() {
       <div>${Q.mode === 'solo' ? `<b>${Q.score}</b> / ${Q.list.length}` : `<b>${Q.scores[p.id]}</b> pts`}${Q.streak >= 3 && Q.mode === 'solo' ? ` <span class="streak">🔥 ${Q.streak}</span>` : ''}</div>
     </div>
     <div class="card qcard">
-      <div class="qmeta"><span class="badge" style="background:${t.colour}">${t.icon} ${t.name}</span>${q.sec ? `<span class="badge" style="background:#7d78a3">${q.sec.icon} ${esc(q.sec.name)}</span>` : ''}<span class="badge" style="background:${lv.colour}">${lv.label}</span></div>
+      <div class="qmeta"><span class="badge" style="background:${t.colour}">${t.icon} ${tName(t)}</span>${q.sec ? `<span class="badge" style="background:#7d78a3">${q.sec.icon} ${esc(sName(q.sec, q.topic))}</span>` : ''}<span class="badge" style="background:${lv.colour}">${lv.label}</span></div>
       <div class="qtext">${fmt(q.text)}</div>
       ${canSpeak ? `<div class="readrow"><button class="readbtn" id="readBtn">🔊 Read it to me</button>${q.sec && !quiet && HE_LETTER.test(q.text) ? `<button class="readbtn" id="heBtn">🗣️ Hear the Hebrew</button>` : ''}</div>` : ''}
       <div class="answers">${q.options.map((o, i) => `<button class="ans" data-i="${i}"><span class="l">${'ABCD'[i]}</span><span dir="${textDir(o)}">${fmt(o)}</span></button>`).join('')}</div>
@@ -592,7 +626,7 @@ function renderResults() {
   setBar('Results', () => go(renderHome));
   main.innerHTML = `
     <h1>${p.avatar} ${esc(nameOf(p))}</h1>
-    <p class="sub">${t.icon} ${t.name}${sec ? ` · ${sec.icon} ${esc(sec.name)}` : ''} · ${LEVELS[level].label}</p>
+    <p class="sub">${t.icon} ${tName(t)}${sec ? ` · ${sec.icon} ${esc(sName(sec, topic))}` : ''} · ${LEVELS[level].label}</p>
     <div class="score-big">${score} / ${list.length}</div>
     <div class="stars-big" style="color:#f0a020">${starStr(stars)}</div>
     <div class="msg">${msg}</div>
@@ -626,7 +660,8 @@ function renderFamilySetup() {
         <span class="badge" style="background:${LEVELS[p.level].colour}">${LEVELS[p.level].label}</span>
       </button>`).join('')}</div>
     <div class="label">Topic</div>
-    <div class="chips">${TOPICS.map(t => `<button class="chip ${F.topic === t.id ? 'on' : ''}" data-ft="${t.id}">${t.icon} ${t.name}</button>`).join('')}</div>
+    <div class="chips">${TOPICS.map(t => `<button class="chip ${F.topic === t.id ? 'on' : ''}" data-ft="${t.id}">${t.icon} ${tName(t)}</button>`).join('')}</div>
+    ${SPELL_TOPICS.includes(F.topic) ? spellChips() : ''}
     <div class="label">Questions each</div>
     <div class="chips">${[3, 5, 10].map(n => `<button class="chip ${F.per === n ? 'on' : ''}" data-fn="${n}">${n}</button>`).join('')}</div>
     <button class="big-btn fam" id="startFam" ${F.players.length < 2 ? 'disabled' : ''}>Start the battle!</button>
@@ -636,6 +671,7 @@ function renderFamilySetup() {
   });
   main.querySelectorAll('[data-ft]').forEach(b => b.onclick = () => { F.topic = b.dataset.ft; renderFamilySetup(); });
   main.querySelectorAll('[data-fn]').forEach(b => b.onclick = () => { F.per = +b.dataset.fn; renderFamilySetup(); });
+  wireSpellChips(renderFamilySetup);
   $('startFam').onclick = () => { initAudio(); save(); startFamily(); };
 }
 function startFamily() {
@@ -653,7 +689,7 @@ function renderHandoff() {
   setBar('Family Battle', () => showLeaveConfirm("Stop the battle? Scores won't be kept."));
   main.innerHTML = `
     <div class="card handoff">
-      <div class="tiny">Round ${Q.round + 1} of ${Q.per} · ${t.icon} ${t.name}</div>
+      <div class="tiny">Round ${Q.round + 1} of ${Q.per} · ${t.icon} ${tName(t)}</div>
       <p class="sub" style="margin:10px 0 0">Pass to…</p>
       <div class="av">${p.avatar}</div>
       <div class="nm">${esc(nameOf(p))}</div>
