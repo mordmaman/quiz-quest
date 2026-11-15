@@ -1178,6 +1178,239 @@ QS.ivrit.adult = [
   ]},
 ];
 
+// =====================================================================
+//  YEDIAH KLALIT (general Jewish knowledge), from the red revision cards:
+//  months of the year, festivals & fasts, brachot, gematria and the books of Tanach.
+//  The same questions are used at every level (it's one set of cards to learn).
+//  Each question is [question, right answer, wrong, wrong, wrong, "did you know?" fact].
+//  Put Hebrew sentences inside English text in curly quotes “like this”.
+//  Write gershayim as ״ and geresh as ׳ (not " or '), e.g. ט״ו בשבט.
+// =====================================================================
+QS.yediah = { notes: {} };
+QS.yediah.notes.k7 = QS.yediah.notes.k11 = QS.yediah.notes.k14 = QS.yediah.notes.adult =
+  "Questions from the yediah klalit cards: months, festivals, brachot, gematria and the books of Tanach. Same questions at every level.";
+
+QS.yediah.k7 = QS.yediah.k11 = QS.yediah.k14 = QS.yediah.adult = [
+  { id: "months", name: "Months of the year", icon: "📅", q: [
+    ["How many months are there in a normal Jewish year?", "12", "13", "10", "11", "A leap year (שנה מעוברת) has 13 months, because an extra Adar is added."],
+    ["In a leap year, which month is doubled?", "אדר", "ניסן", "אלול", "תשרי", "A leap year has אדר א׳ and אדר ב׳. Purim is in Adar Bet."],
+    ["How many leap years are there in every 19 years?", "7", "1", "3", "12", "Adding a month 7 times in 19 years keeps Pesach in the spring."],
+    ["Which month does the year begin with on the card?", "תשרי", "ניסן", "אלול", "טבת", "The new year, ראש השנה, is on 1–2 Tishrei."],
+    ["In the Torah, which month is called the FIRST month?", "ניסן", "תשרי", "אדר", "סיון", "“הַחֹדֶשׁ הַזֶּה לָכֶם רֹאשׁ חֳדָשִׁים” (Shemot 12:2). Nisan is first because it's the month we left Egypt."],
+    ["Which month comes straight after כסלו?", "טבת", "שבט", "חשוון", "אדר", "Chanukah starts in Kislev and finishes in Tevet!"],
+    ["Which month comes straight after שבט?", "אדר", "טבת", "ניסן", "אייר", "Shevat (Tu BiShvat) is followed by Adar (Purim)."],
+    ["Which month comes straight BEFORE תשרי?", "אלול", "אב", "חשוון", "תמוז", "Elul is the last month of the year, getting ready for Rosh Hashanah."],
+    ["Which month comes straight after תשרי?", "חשוון", "כסלו", "אלול", "טבת", "Cheshvan is sometimes called Mar-Cheshvan (bitter Cheshvan) because it has no festivals."],
+    ["Which month comes between ניסן and סיון?", "אייר", "אב", "אדר", "תמוז", "Iyar has Pesach Sheni (14) and Lag BaOmer (18)."],
+    ["How many days does תשרי have?", "30", "29", "28", "31", "Most months take turns: 30, 29, 30, 29… starting with Tishrei."],
+    ["How many days does אלול have?", "29", "30", "28", "31", "Elul always has 29 days, so Rosh Hashanah is just one day of Rosh Chodesh after it."],
+    ["How many days does ניסן have?", "30", "29", "28", "31", "Nisan always has 30 days."],
+    ["Which TWO months can have either 29 or 30 days?", "חשוון and כסלו", "תשרי and ניסן", "אלול and אב", "שבט and אדר", "Changing Cheshvan and Kislev is how the calendar makes sure the year comes out right."],
+    ["Why does a Jewish month have 29 or 30 days?", "It follows the moon, which takes about 29½ days", "It follows the sun, which takes 30 days", "The number of days was chosen at random", "It matches the length of the English months", "Each month starts at the new moon. That's why it's called a חודש, from חדש (new)."],
+    ["What are the ימי רצון in Elul?", "Days of goodwill, when Hashem is close", "Days of fasting and mourning", "Days off school before the new year", "Days of happy festivals", "Moshe went up Har Sinai on Rosh Chodesh Elul and came down on Yom Kippur. Sephardim say Selichot all through Elul."],
+  ]},
+  { id: "chagim", name: "Festivals & fasts", icon: "🕎", q: [
+    ["When is ראש השנה?", "1–2 Tishrei", "1 Nisan", "10 Tishrei", "15 Shevat", "Rosh Hashanah is two days, even in Israel."],
+    ["When is צום גדליה?", "3 Tishrei", "10 Tevet", "17 Tammuz", "13 Adar", "It remembers Gedaliah ben Achikam. If 3 Tishrei is Shabbat, the fast moves to Sunday."],
+    ["When is יום כיפור?", "10 Tishrei", "1 Tishrei", "15 Tishrei", "9 Av", "Yom Kippur is the 10th day of Tishrei, the holiest day of the year."],
+    ["When does סוכות start?", "15 Tishrei", "10 Tishrei", "22 Tishrei", "15 Nisan", "Sukkot and Pesach both start on the 15th, at full moon. 🌕"],
+    ["Outside Israel, when are שמיני עצרת and שמחת תורה?", "22–23 Tishrei", "15–16 Tishrei", "1–2 Tishrei", "6–7 Sivan", "In Israel they're both on the same day, 22 Tishrei."],
+    ["Which day is in חשוון, according to the card?", "The yahrzeit of Rachel Imeinu", "Tu BiShvat", "Purim Katan", "Pesach Sheni", "Rachel Imeinu's yahrzeit is 11 Cheshvan. Many people visit her tomb near Beit Lechem."],
+    ["What is on 11 Cheshvan?", "יום פטירת רחל אמנו", "צום גדליה", "פסח שני", "ל״ג בעומר", "Rachel was buried on the road to Beit Lechem (Bereishit 35:19)."],
+    ["When does חנוכה start?", "25 Kislev", "15 Kislev", "1 Tevet", "25 Tevet", "Chanukah is 8 days, so it carries on into Tevet."],
+    ["Chanukah ends on 2 Tevet in some years and 3 Tevet in others. Why?", "Kislev can have 29 or 30 days", "It depends on when Shabbat falls", "Israel and outside Israel are different", "In a leap year it is one day longer", "If Kislev has 30 days, Chanukah ends on 2 Tevet. If it has 29, it ends on 3 Tevet."],
+    ["When is the fast of עשרה בטבת?", "10 Tevet", "10 Tishrei", "9 Av", "13 Adar", "It remembers the day the Babylonians began the siege of Yerushalayim."],
+    ["What is ט״ו בשבט called on the card?", "ראש השנה לאילנות", "ראש השנה לשנים", "ראש חודש שבט", "חג הקציר", "The New Year for Trees. 🌳 We eat fruits, especially the fruits Israel is praised for."],
+    ["Put these Adar days in order, 13 → 14 → 15:", "Ta'anit Esther → Purim → Shushan Purim", "Purim → Ta'anit Esther → Shushan Purim", "Shushan Purim → Purim → Ta'anit Esther", "Ta'anit Esther → Shushan Purim → Purim", "Shushan Purim (15) is kept in walled cities like Yerushalayim."],
+    ["When is פורים?", "14 Adar", "13 Adar", "15 Adar", "14 Nisan", "Mordechai and Esther made it a day of feasting, mishloach manot and matanot la'evyonim."],
+    ["Where do people keep שושן פורים on 15 Adar?", "In cities that had a wall round them in Yehoshua's time, like Yerushalayim", "Only in the city of Shushan in Persia", "Everywhere outside Israel", "Only in a leap year", "In Shushan the Jews fought on the 14th too and rested on the 15th."],
+    ["When does פסח start?", "15 Nisan", "14 Nisan", "1 Nisan", "15 Iyar", "The card says 15–21 Nisan: 7 days in Israel. Outside Israel it's 8 days, until the 22nd."],
+    ["What is פסח שני, on 14 Iyar?", "A second chance to bring the Korban Pesach", "The last day of Pesach", "A fast day", "Israel's Independence Day", "Anyone who was tamei or far away on Pesach could bring the korban a month later (Bamidbar 9)."],
+    ["When is ל״ג בעומר?", "18 Iyar", "14 Iyar", "33 Iyar", "6 Sivan", "It's the 33rd day of the Omer. ל = 30 and ג = 3!"],
+    ["When is שבועות?", "6 Sivan", "15 Sivan", "6 Nisan", "18 Iyar", "Outside Israel there's a second day, 7 Sivan. It's the day we got the Torah."],
+    ["When is the fast of שבעה עשר בתמוז?", "17 Tammuz", "9 Av", "10 Tevet", "7 Tammuz", "The walls of Yerushalayim were broken through. It starts the Three Weeks."],
+    ["When is תשעה באב?", "9 Av", "17 Tammuz", "10 Tishrei", "9 Elul", "Both Batei Mikdash were destroyed on Tisha B'Av."],
+    ["Which of these is a FAST day?", "עשרה בטבת", "ט״ו בשבט", "ל״ג בעומר", "פסח שני", "The fasts on the card are צום גדליה, עשרה בטבת, תענית אסתר, שבעה עשר בתמוז and תשעה באב."],
+    ["Which month has BOTH Rosh Hashanah and Yom Kippur?", "תשרי", "אלול", "ניסן", "חשוון", "Tishrei also has Sukkot, Shemini Atzeret and Simchat Torah. A very busy month!"],
+    ["Which festival is in סיון?", "שבועות", "פסח", "סוכות", "חנוכה", "Sivan is the month we stood at Har Sinai."],
+  ]},
+  { id: "brachot", name: "Brachot", icon: "🌸", q: [
+    ["How does every bracha on the card begin?", "“בָּרוּךְ אַתָּה ה׳ אֱלֹקֵינוּ מֶלֶךְ הָעוֹלָם”", "“שְׁמַע יִשְׂרָאֵל ה׳ אֱלֹקֵינוּ ה׳ אֶחָד”", "“מוֹדֶה אֲנִי לְפָנֶיךָ מֶלֶךְ חַי וְקַיָּם”", "“אֲדוֹן עוֹלָם אֲשֶׁר מָלַךְ”", "The card translates it: Blessed are You, source of all blessing, our G-d, King of the world."],
+    ["What does מֶלֶךְ הָעוֹלָם mean?", "King of the world", "Blessed are You", "Our G-d", "Creator of light", "מֶלֶךְ = king and עוֹלָם = world."],
+    ["What do you say on smelling fragrant SPICES, like cloves at Havdalah?", "בּוֹרֵא מִינֵי בְשָׂמִים", "בּוֹרֵא עֲצֵי בְשָׂמִים", "בּוֹרֵא עִשְׂבֵי בְשָׂמִים", "הַנּוֹתֵן רֵיחַ טוֹב בַּפֵּרוֹת", "מִינֵי בְשָׂמִים = kinds of spices."],
+    ["What do you say on smelling fragrant TREES or bushes, like myrtle (hadas)?", "בּוֹרֵא עֲצֵי בְשָׂמִים", "בּוֹרֵא מִינֵי בְשָׂמִים", "בּוֹרֵא עִשְׂבֵי בְשָׂמִים", "שֶׁכֹּחוֹ וּגְבוּרָתוֹ מָלֵא עוֹלָם", "עֵץ = tree, so עֲצֵי בְשָׂמִים = fragrant trees. Many Sephardim smell hadassim at Havdalah."],
+    ["What do you say on smelling fragrant PLANTS (herbs), like mint?", "בּוֹרֵא עִשְׂבֵי בְשָׂמִים", "בּוֹרֵא עֲצֵי בְשָׂמִים", "בּוֹרֵא מִינֵי בְשָׂמִים", "בּוֹרֵא פְּרִי הָאֲדָמָה", "עֵשֶׂב = grass or herb, so עִשְׂבֵי בְשָׂמִים = fragrant plants. 🌿"],
+    ["What do you say on smelling fragrant FRUIT, like an etrog or an apple?", "הַנּוֹתֵן רֵיחַ טוֹב בַּפֵּרוֹת", "בּוֹרֵא פְּרִי הָעֵץ", "בּוֹרֵא עֲצֵי בְשָׂמִים", "בּוֹרֵא מִינֵי בְשָׂמִים", "It means 'who puts a good smell into fruit'. 🍋 בּוֹרֵא פְּרִי הָעֵץ is for EATING fruit."],
+    ["What do you say when you hear THUNDER? ⛈️", "שֶׁכֹּחוֹ וּגְבוּרָתוֹ מָלֵא עוֹלָם", "עוֹשֶׂה מַעֲשֵׂה בְרֵאשִׁית", "דַּיַּן הָאֱמֶת", "הַטּוֹב וְהַמֵּטִיב", "It means 'whose strength and power fill the world'. On seeing lightning we say עוֹשֶׂה מַעֲשֵׂה בְרֵאשִׁית."],
+    ["What do you say when you hear GOOD news?", "הַטּוֹב וְהַמֵּטִיב", "דַּיַּן הָאֱמֶת", "שֶׁכֹּחוֹ וּגְבוּרָתוֹ מָלֵא עוֹלָם", "לִשְׁמוֹעַ קוֹל שׁוֹפָר", "It means 'who is good and does good'. It's for good news that's good for others too."],
+    ["What do you say when you hear BAD news (ח״ו)?", "דַּיַּן הָאֱמֶת", "הַטּוֹב וְהַמֵּטִיב", "שֶׁהֶחֱיָנוּ", "עוֹשֶׂה מַעֲשֵׂה בְרֵאשִׁית", "It means 'the true Judge'. We accept that everything Hashem does is right, even when it's hard."],
+    ["What does ח״ו next to 'bad news' on the card stand for?", "חס ושלום: Heaven forbid", "חג וחגיגה: festival", "חיים וחסד: life and kindness", "חכם ונבון: wise", "חס ושלום is said to hope something bad won't happen."],
+    ["Which bracha do we say before hearing the SHOFAR? 📯", "לִשְׁמוֹעַ קוֹל שׁוֹפָר", "לְהַדְלִיק נֵר שֶׁל יוֹם טוֹב", "עַל נְטִילַת יָדַיִם", "שֶׁכֹּחוֹ וּגְבוּרָתוֹ מָלֵא עוֹלָם", "The mitzvah is to HEAR the shofar, not to blow it. That's why the bracha says לִשְׁמוֹעַ, to hear."],
+    ["What does שֶׁכֹּחוֹ וּגְבוּרָתוֹ מָלֵא עוֹלָם mean?", "Whose strength and power fill the world", "Who is good and does good", "The true Judge", "Who gives a good smell to fruit", "We say it on thunder, because thunder fills the world with its sound."],
+    ["Which bracha goes with which? Pick the right pair.", "Fragrant fruit → הַנּוֹתֵן רֵיחַ טוֹב בַּפֵּרוֹת", "Thunder → דַּיַּן הָאֱמֶת", "Good news → בּוֹרֵא מִינֵי בְשָׂמִים", "Shofar → הַטּוֹב וְהַמֵּטִיב", "Thunder → שֶׁכֹּחוֹ · good news → הַטּוֹב וְהַמֵּטִיב · spices → מִינֵי בְשָׂמִים · shofar → לִשְׁמוֹעַ קוֹל שׁוֹפָר"],
+    ["Which pair is WRONG?", "Fragrant trees → בּוֹרֵא עִשְׂבֵי בְשָׂמִים", "Fragrant spices → בּוֹרֵא מִינֵי בְשָׂמִים", "Bad news → דַּיַּן הָאֱמֶת", "Thunder → שֶׁכֹּחוֹ וּגְבוּרָתוֹ מָלֵא עוֹלָם", "Trees → עֲצֵי בְשָׂמִים (עֵץ = tree). Plants and herbs → עִשְׂבֵי בְשָׂמִים."],
+    ["The card splits these brachot into two groups. What are they?", "Things we smell and things we hear", "Things we eat and things we drink", "Things we see and things we touch", "Weekdays and Shabbat", "Smell: spices, trees, plants, fruit. Hear: good news, bad news, shofar, thunder."],
+  ]},
+  { id: "gematria", name: "Gematria", icon: "🔢", q: [
+    ["What is the gematria (number) of א?", "1", "10", "100", "0", "The first nine letters (א to ט) are 1 to 9."],
+    ["What number is ל?", "30", "3", "12", "300", "י to צ are the tens: י=10, כ=20, ל=30, מ=40…"],
+    ["What number is ק?", "100", "10", "19", "1000", "ק ר ש ת are the hundreds: 100, 200, 300, 400."],
+    ["What number is ת, the last letter?", "400", "22", "40", "1000", "There's no letter for 500, so bigger numbers join letters together: 500 = ת״ק."],
+    ["Which letter is 50?", "נ", "ה", "מ", "ש", "ה = 5, מ = 40, ש = 300."],
+    ["Which letter is 200?", "ר", "ב", "כ", "ש", "ב = 2, כ = 20, ר = 200: the same 'two' in the units, tens and hundreds."],
+    ["Which letter is 90?", "צ", "ט", "ק", "פ", "ט = 9, צ = 90, and פ = 80."],
+    ["Which letter is 8?", "ח", "ט", "ה", "ז", "ה = 5 · ו = 6 · ז = 7 · ח = 8 · ט = 9"],
+    ["What is the gematria of חַי (life)?", "18", "8", "81", "28", "ח = 8 + י = 10. That's why people give tzedakah in 18s!"],
+    ["How do we write the number 15 in Hebrew letters?", "ט״ו", "י״ה", "ה״י", "יה״ו", "We don't write י״ה, because it spells part of Hashem's name. So 15 = 9 + 6 = ט״ו."],
+    ["How do we write 16 in Hebrew letters?", "ט״ז", "י״ו", "ו״י", "יו״ט", "Again we avoid י״ו (part of Hashem's name), so 16 = 9 + 7 = ט״ז."],
+    ["What number is ל״ג in ל״ג בעומר?", "33", "13", "53", "330", "ל = 30 + ג = 3. Lag BaOmer is the 33rd day of the Omer."],
+    ["Chanukah starts on כ״ה כסלו. Which day is that?", "25", "15", "52", "205", "כ = 20 + ה = 5."],
+    ["How do you write 12 in Hebrew letters?", "י״ב", "ב״י", "יב״ב", "ל״ב", "Put the bigger letter first: י (10) + ב (2). ל״ב would be 32."],
+    ["What is the gematria of אֶחָד (one)?", "13", "12", "31", "4", "א = 1 + ח = 8 + ד = 4 = 13, the same as אַהֲבָה (love): 1 + 5 + 2 + 5!"],
+    ["What do the letters תשפ״ז add up to?", "787", "5787", "707", "1087", "400 + 300 + 80 + 7 = 787. We leave out the 5000, so the year 5787 is written תשפ״ז."],
+    ["A page in a sefer is marked קכ״ג. What page is it?", "123", "321", "26", "1203", "ק = 100, כ = 20, ג = 3."],
+    ["What is the gematria of יָד (hand)?", "14", "41", "4", "104", "י = 10 + ד = 4. The Rambam's big book is called the יַד הַחֲזָקָה because it has 14 books!"],
+  ]},
+  { id: "tanach", name: "Books of Tanach", icon: "📜", q: [
+    ["What does תנ״ך stand for?", "תורה, נביאים, כתובים", "תורה, נביאים, כוהנים", "תפילה, נביאים, כתובים", "תורה, נשים, כתובים", "Torah, Prophets and Writings: the three parts of Tanach."],
+    ["How many books are in the Torah?", "5", "4", "7", "24", "That's why it's called the חומש, from חמש (five)."],
+    ["What is the first book of the Torah?", "בראשית", "שמות", "יהושע", "תהלים", "בראשית means 'in the beginning'. It starts with the creation of the world."],
+    ["Which book of the Torah comes after שמות?", "ויקרא", "במדבר", "דברים", "בראשית", "בראשית, שמות, ויקרא, במדבר, דברים"],
+    ["What is the last book of the Torah?", "דברים", "במדבר", "ויקרא", "יהושע", "On Simchat Torah we finish דברים and start בראשית straight away."],
+    ["Which book tells the story of leaving Egypt?", "שמות", "בראשית", "ויקרא", "דברים", "Shemot has the ten plagues, the splitting of the sea and Matan Torah."],
+    ["What is the first book of נביאים?", "יהושע", "שמואל", "ישעיהו", "שופטים", "Yehoshua took over from Moshe and led the people into Eretz Yisrael. He's in Pirkei Avot too!"],
+    ["Which section of Tanach is יחזקאל in?", "נביאים", "תורה", "כתובים", "None of them", "The card lists three big prophets: ישעיהו, ירמיהו, יחזקאל."],
+    ["What is תרי עשר?", "One book with twelve short prophets", "The twelve tribes", "Twelve chapters of Tehillim", "A book with twelve laws", "תרי is Aramaic for 'two', so תרי עשר = twelve. Yonah, Hoshea and Malachi are in it."],
+    ["In which book is the story of Yonah and the big fish? 🐋", "תרי עשר", "תהלים", "דניאל", "יהושע", "Yonah is one of the twelve prophets of Trei Asar. We read it on Yom Kippur afternoon."],
+    ["Which of these is in כתובים, NOT in נביאים?", "דניאל", "ירמיהו", "שופטים", "מלכים", "Even though Daniel had visions, his book is in Ketuvim."],
+    ["What is the first book of כתובים?", "תהלים", "משלי", "איוב", "רות", "On the card, Ketuvim starts תהלים, משלי, איוב."],
+    ["What is the last book of the whole Tanach?", "דברי הימים", "מלאכי", "דניאל", "אסתר", "Divrei HaYamim (Chronicles) is the last book of Ketuvim."],
+    ["Which of these is NOT one of the five Megillot?", "דניאל", "רות", "איכה", "קהלת", "The five Megillot: שיר השירים, רות, איכה, קהלת, אסתר."],
+    ["Which Megillah do we read on Purim?", "אסתר", "רות", "איכה", "קהלת", "Megillat Esther is read at night and again in the morning."],
+    ["Which Megillah do we read on Shavuot?", "רות", "אסתר", "שיר השירים", "קהלת", "Ruth accepted the Torah, and her great-grandson King David was born and died on Shavuot."],
+    ["Which Megillah do we read on Tisha B'Av?", "איכה", "קהלת", "רות", "אסתר", "Eicha mourns the destruction of Yerushalayim. It was written by Yirmiyahu."],
+    ["Who wrote most of תהלים?", "King David", "King Shlomo", "Moshe", "Yirmiyahu", "David HaMelech is called נְעִים זְמִרוֹת יִשְׂרָאֵל, the sweet singer of Israel."],
+    ["Who wrote משלי (Proverbs)?", "King Shlomo", "King David", "Yehoshua", "Ezra", "Shlomo HaMelech was the wisest of all people. He also wrote שיר השירים and קהלת."],
+    ["Which of these books has an א and a ב (two parts)?", "מלכים", "ישעיהו", "יהושע", "איוב", "שמואל, מלכים and דברי הימים each have א and ב, but each counts as one book."],
+    ["How many books are there in the whole Tanach?", "24", "39", "22", "613", "Torah 5 + Nevi'im 8 + Ketuvim 11 = 24."],
+  ]},
+];
+
+// =====================================================================
+//  PIRKEI AVOT: chapter 1, mishnayot 1–4. Text (with nikud) from Sefaria (Torat Emet).
+//  Translation, meaning, matching words and completing the mishnah.
+//  The same questions are used at every level.
+//  Each question is [question, right answer, wrong, wrong, wrong, "did you know?" fact].
+//  Put Hebrew inside English text in curly quotes “like this”. Use ___ for a gap.
+// =====================================================================
+QS.avot = { notes: {} };
+QS.avot.notes.k7 = QS.avot.notes.k11 = QS.avot.notes.k14 = QS.avot.notes.adult =
+  "Pirkei Avot chapter 1, mishnayot 1–4: what the words mean, what the mishnah teaches, and filling in the gaps. Tap 🗣️ to hear the Hebrew.";
+
+QS.avot.k7 = QS.avot.k11 = QS.avot.k14 = QS.avot.adult = [
+  // 1:1 מֹשֶׁה קִבֵּל תּוֹרָה מִסִּינַי, וּמְסָרָהּ לִיהוֹשֻׁעַ, וִיהוֹשֻׁעַ לִזְקֵנִים, וּזְקֵנִים לִנְבִיאִים, וּנְבִיאִים מְסָרוּהָ לְאַנְשֵׁי כְנֶסֶת הַגְּדוֹלָה.
+  //     הֵם אָמְרוּ שְׁלשָׁה דְבָרִים, הֱווּ מְתוּנִים בַּדִּין, וְהַעֲמִידוּ תַלְמִידִים הַרְבֵּה, וַעֲשׂוּ סְיָג לַתּוֹרָה
+  { id: "m1", name: "Mishnah 1: מֹשֶׁה קִבֵּל", icon: "⛰️", q: [
+    ["What does “מֹשֶׁה קִבֵּל תּוֹרָה מִסִּינַי” mean?", "Moshe received the Torah from Sinai", "Moshe gave the Torah at Sinai", "Moshe taught the Torah in Sinai", "Moshe wrote the Torah on Sinai", "'From Sinai' means from Hashem, who gave it at Har Sinai."],
+    ["What does קִבֵּל mean?", "Received", "Gave", "Wrote", "Taught", "קִבֵּל = received. The same root gives us קַבָּלָה (tradition) and לְקַבֵּל (to receive)."],
+    ["What does וּמְסָרָהּ mean?", "And passed it on", "And received it", "And kept it", "And read it", "מָסַר = to hand over. A מָסוֹרֶת is a tradition handed down from one generation to the next."],
+    ["Who did Moshe pass the Torah on to?", "Yehoshua", "Aharon", "The Elders", "The Prophets", "“וּמְסָרָהּ לִיהוֹשֻׁעַ” — Yehoshua was Moshe's student and led the people after him."],
+    ["What does זְקֵנִים mean?", "Elders", "Prophets", "Students", "Judges", "The Elders led the people after Yehoshua, in the time of the Shoftim (Judges)."],
+    ["What does נְבִיאִים mean?", "Prophets", "Elders", "Kings", "Priests", "The prophets, like Shmuel, Eliyahu and Yirmiyahu, passed on the Torah after the Elders."],
+    ["Who passed the Torah on to the אַנְשֵׁי כְנֶסֶת הַגְּדוֹלָה?", "The Prophets", "The Elders", "Yehoshua", "Moshe", "“וּנְבִיאִים מְסָרוּהָ לְאַנְשֵׁי כְנֶסֶת הַגְּדוֹלָה”"],
+    ["Put the chain in the right order:", "Moshe → Yehoshua → Elders → Prophets → Great Assembly", "Moshe → Elders → Yehoshua → Prophets → Great Assembly", "Moshe → Yehoshua → Prophets → Elders → Great Assembly", "Moshe → Prophets → Elders → Yehoshua → Great Assembly", "This is the chain of the Oral Torah. Every link learned it from the one before."],
+    ["What does אַנְשֵׁי כְנֶסֶת הַגְּדוֹלָה mean?", "The Men of the Great Assembly", "The great men of the shul", "The people of the big city", "The leaders of the Beit HaMikdash", "120 sages at the start of the Second Temple, led by Ezra. They wrote the words of the Amidah."],
+    ["How many things did the Men of the Great Assembly say?", "3", "2", "4", "10", "“הֵם אָמְרוּ שְׁלשָׁה דְבָרִים” — they said three things."],
+    ["What does “הֱווּ מְתוּנִים בַּדִּין” mean?", "Be patient and careful in judgement", "Be strict in judgement", "Judge quickly", "Always find people innocent", "A judge should take time and think it through, not decide in a hurry."],
+    ["What does מְתוּנִים mean?", "Patient, unhurried", "Strict", "Fast", "Kind", "From מָתוֹן: slow and careful. In modern Hebrew, בְּמָתִינוּת means 'calmly'."],
+    ["What does “וְהַעֲמִידוּ תַלְמִידִים הַרְבֵּה” mean?", "Raise up many students", "Stand up for your teachers", "Make the students stand", "Choose only a few students", "הַעֲמִידוּ = make stand, raise up. Teach lots of students so the Torah keeps going."],
+    ["What does “וַעֲשׂוּ סְיָג לַתּוֹרָה” mean?", "Make a fence for the Torah", "Make a book of the Torah", "Make a party for the Torah", "Make a home for the Torah", "Extra rules that keep us far from breaking a mitzvah of the Torah."],
+    ["What does סְיָג mean?", "A fence", "A judgement", "A student", "A prophet", "A סְיָג protects the Torah, like a fence round a garden. 🌳"],
+    ["Which of these is an example of a סְיָג (fence)?", "Not picking up a pen on Shabbat, so you won't come to write", "Eating matzah on Pesach night", "Saying Shema in the morning", "Hearing the shofar on Rosh Hashanah", "The rule of muktzeh is a fence: not even touching a pen keeps you far from writing."],
+    ["Complete: “מֹשֶׁה קִבֵּל תּוֹרָה ___, וּמְסָרָהּ לִיהוֹשֻׁעַ”", "מִסִּינַי", "מִמִּצְרַיִם", "מֵאַהֲרֹן", "בַּמִּדְבָּר", "Moshe received the Torah from Sinai."],
+    ["Complete: “וּנְבִיאִים מְסָרוּהָ לְאַנְשֵׁי ___ הַגְּדוֹלָה”", "כְנֶסֶת", "בֵית", "עִיר", "מִשְׁפָּחָה", "כְּנֶסֶת = gathering or assembly. Israel's parliament is called the כְּנֶסֶת after it."],
+    ["Complete: “הֱווּ מְתוּנִים בַּדִּין, וְהַעֲמִידוּ ___ הַרְבֵּה”", "תַלְמִידִים", "זְקֵנִים", "נְבִיאִים", "דְבָרִים", "Raise up many students."],
+    ["Complete: “וַעֲשׂוּ ___ לַתּוֹרָה”", "סְיָג", "דִּין", "כָּבוֹד", "שִׂמְחָה", "Make a fence for the Torah."],
+    ["Which pair is matched correctly?", "זְקֵנִים = elders", "נְבִיאִים = students", "סְיָג = judgement", "דִּין = fence", "זְקֵנִים = elders · נְבִיאִים = prophets · תַלְמִידִים = students · דִּין = judgement · סְיָג = fence"],
+    ["Why does Pirkei Avot start with Moshe receiving the Torah at Sinai?", "To show the Sages' teachings also come from Sinai", "Because it's the first story in the Chumash", "Because Moshe wrote Pirkei Avot", "To teach us the date of Shavuot", "The Bartenura explains that all the advice in Avot was also handed down from Sinai."],
+  ]},
+  // 1:2 שִׁמְעוֹן הַצַּדִּיק הָיָה מִשְּׁיָרֵי כְנֶסֶת הַגְּדוֹלָה. הוּא הָיָה אוֹמֵר, עַל שְׁלשָׁה דְבָרִים הָעוֹלָם עוֹמֵד, עַל הַתּוֹרָה וְעַל הָעֲבוֹדָה וְעַל גְּמִילוּת חֲסָדִים
+  { id: "m2", name: "Mishnah 2: שִׁמְעוֹן הַצַּדִּיק", icon: "🌍", q: [
+    ["What does שִׁמְעוֹן הַצַּדִּיק mean?", "Shimon the Righteous", "Shimon the Wise", "Shimon the Priest", "Shimon the King", "He was the Kohen Gadol (High Priest) in the Second Beit HaMikdash."],
+    ["What does “הָיָה מִשְּׁיָרֵי כְנֶסֶת הַגְּדוֹלָה” mean?", "He was one of the last of the Great Assembly", "He was the leader of the Great Assembly", "He was the first of the Great Assembly", "He was not part of the Great Assembly", "שְׁיָרִים = what's left over (like 'shirayim' from the Rebbe's table)."],
+    ["What does “הוּא הָיָה אוֹמֵר” mean?", "He used to say", "He will say", "He never said", "He said once", "הָיָה אוֹמֵר means he said it often: it was his regular teaching."],
+    ["What does “עַל שְׁלשָׁה דְבָרִים הָעוֹלָם עוֹמֵד” mean?", "The world stands on three things", "Three things stand in the world", "The world will end after three things", "Stand up for three things", "Like a table on three legs, the world is held up by these three."],
+    ["What does עוֹמֵד mean?", "Stands", "Sits", "Turns", "Falls", "עוֹמֵד = stands. The Amidah prayer is called that because we stand for it."],
+    ["What are the three things the world stands on?", "Torah, Avodah, Gemilut Chasadim", "Torah, Truth, Peace", "Prayer, Tzedakah, Teshuvah", "Shabbat, Kashrut, Tefillin", "“עַל הַתּוֹרָה וְעַל הָעֲבוֹדָה וְעַל גְּמִילוּת חֲסָדִים”. Truth, judgement and peace are in Mishnah 18!"],
+    ["Which is NOT one of the three things in this mishnah?", "אֱמֶת (truth)", "תּוֹרָה", "עֲבוֹדָה", "גְּמִילוּת חֲסָדִים", "Truth comes later, in Mishnah 18: the world lasts on דִּין, אֱמֶת and שָׁלוֹם."],
+    ["What does הָעֲבוֹדָה mean here?", "Serving Hashem: korbanot, and today prayer", "Going to work to earn money", "Being a slave", "Doing homework", "In the Beit HaMikdash it was the korbanot. Today we serve Hashem with tefillah, 'the service of the heart'."],
+    ["What does גְּמִילוּת חֲסָדִים mean?", "Acts of kindness", "Giving charity only to the poor", "Learning Torah", "Saying thank you", "The Gemara says it's even greater than tzedakah: you can do it with your body, for rich and poor, living and dead."],
+    ["Which of these is גְּמִילוּת חֲסָדִים?", "Visiting a friend who is ill", "Davening Mincha", "Learning a mishnah", "Keeping Shabbat", "Bikur cholim, welcoming guests and helping someone carry their shopping are all acts of kindness."],
+    ["Davening Mincha is which of the three things?", "הָעֲבוֹדָה", "הַתּוֹרָה", "גְּמִילוּת חֲסָדִים", "None of them", "Prayer is called עֲבוֹדָה שֶׁבַּלֵּב: the service of the heart."],
+    ["Learning Pirkei Avot is which of the three things?", "הַתּוֹרָה", "הָעֲבוֹדָה", "גְּמִילוּת חֲסָדִים", "None of them", "Just by doing this quiz you're holding up the world! 🌍"],
+    ["Complete: “עַל הַתּוֹרָה וְעַל ___ וְעַל גְּמִילוּת חֲסָדִים”", "הָעֲבוֹדָה", "הָאֱמֶת", "הַדִּין", "הַשָּׁלוֹם", "Torah, Avodah and Gemilut Chasadim."],
+    ["Complete: “עַל שְׁלשָׁה דְבָרִים ___ עוֹמֵד”", "הָעוֹלָם", "הָאָדָם", "הַבַּיִת", "הָעָם", "The world stands on three things."],
+    ["Complete: “שִׁמְעוֹן הַצַּדִּיק הָיָה ___ כְנֶסֶת הַגְּדוֹלָה”", "מִשְּׁיָרֵי", "רֹאשׁ", "תַּלְמִיד", "אֲבִי", "He was one of the last ones left from the Great Assembly."],
+    ["Which pair is matched correctly?", "עוֹמֵד = stands", "עוֹלָם = Torah", "עֲבוֹדָה = kindness", "חֲסָדִים = service", "עוֹלָם = world · עֲבוֹדָה = service · חֲסָדִים = kindnesses · עוֹמֵד = stands"],
+    ["According to the Gemara, which famous king bowed down when he met Shimon HaTzaddik?", "Alexander the Great", "Nevuchadnetzar", "Achashverosh", "King Shlomo", "Alexander said he saw Shimon's image before him whenever he won a battle (Yoma 69a)."],
+  ]},
+  // 1:3 אַנְטִיגְנוֹס אִישׁ סוֹכוֹ קִבֵּל מִשִּׁמְעוֹן הַצַּדִּיק. הוּא הָיָה אוֹמֵר, אַל תִּהְיוּ כַעֲבָדִים הַמְשַׁמְּשִׁין אֶת הָרַב עַל מְנָת לְקַבֵּל פְּרָס,
+  //     אֶלָּא הֱווּ כַעֲבָדִים הַמְשַׁמְּשִׁין אֶת הָרַב שֶׁלֹּא עַל מְנָת לְקַבֵּל פְּרָס, וִיהִי מוֹרָא שָׁמַיִם עֲלֵיכֶם
+  { id: "m3", name: "Mishnah 3: אַנְטִיגְנוֹס", icon: "🤲", q: [
+    ["Who received the Torah from Shimon HaTzaddik?", "Antigonus of Socho", "Yossi ben Yoezer", "Hillel", "Ezra", "“אַנְטִיגְנוֹס אִישׁ סוֹכוֹ קִבֵּל מִשִּׁמְעוֹן הַצַּדִּיק”"],
+    ["What does אִישׁ סוֹכוֹ mean?", "A man from the town of Socho", "A man who builds sukkot", "A very holy man", "A man of the Great Assembly", "Socho was a town in Yehudah. Antigonus is a Greek name, from the time when Greece ruled Eretz Yisrael."],
+    ["What does עֲבָדִים mean?", "Servants", "Students", "Children", "Soldiers", "עֶבֶד = servant. That's where עֲבוֹדָה (service, work) comes from."],
+    ["What does “הַמְשַׁמְּשִׁין אֶת הָרַב” mean?", "Who serve the master", "Who learn from the rabbi", "Who pay the master", "Who are afraid of the master", "In this mishnah רַב means master. The servants stand for us, and the master for Hashem."],
+    ["What does “עַל מְנָת לְקַבֵּל פְּרָס” mean?", "In order to get a reward", "Without getting a reward", "In order to give a present", "After getting paid", "עַל מְנָת = in order to · לְקַבֵּל = to receive · פְּרָס = reward"],
+    ["What does פְּרָס mean?", "Reward, prize", "Punishment", "Master", "Fear", "In modern Hebrew a פְּרָס is a prize, like פְּרָס נוֹבֵּל (the Nobel Prize). 🏆"],
+    ["What does “אַל תִּהְיוּ” mean?", "Do not be", "You must be", "You will be", "Let there be", "אַל = don't. Compare “הֱווּ” = be!"],
+    ["What does אֶלָּא mean?", "But rather", "Because", "And also", "Only if", "Don't be like this, אֶלָּא (but rather) be like that."],
+    ["What is the main lesson of Antigonus?", "Serve Hashem out of love, not to get a reward", "Only do mitzvot that have a reward", "Servants should always be paid on time", "It's wrong to work for anyone else", "Do mitzvot because they're right and because you love Hashem, not for the prize."],
+    ["What does “וִיהִי מוֹרָא שָׁמַיִם עֲלֵיכֶם” mean?", "And let the fear of Heaven be upon you", "And look up at the sky", "And let Heaven reward you", "And don't be afraid of anything", "מוֹרָא = fear or awe · שָׁמַיִם = Heaven, a way of saying Hashem."],
+    ["Why does Antigonus add “וִיהִי מוֹרָא שָׁמַיִם עֲלֵיכֶם”?", "So that serving out of love comes with awe and respect too", "Because Hashem only wants us to be afraid", "To warn that there's no reward at all", "To teach us to look at the stars", "Love makes you want to do more, awe stops you from doing wrong. The best service has both."],
+    ["Complete: “אַל תִּהְיוּ כַעֲבָדִים הַמְשַׁמְּשִׁין אֶת הָרַב עַל מְנָת לְקַבֵּל ___”", "פְּרָס", "תּוֹרָה", "כָּבוֹד", "מוֹרָא", "Don't be like servants who serve the master to get a reward."],
+    ["Complete: “אֶלָּא הֱווּ כַעֲבָדִים הַמְשַׁמְּשִׁין אֶת הָרַב ___ עַל מְנָת לְקַבֵּל פְּרָס”", "שֶׁלֹּא", "כְּדֵי", "רַק", "גַּם", "שֶׁלֹּא = not. The only change from the first half is this one word!"],
+    ["Complete: “וִיהִי ___ שָׁמַיִם עֲלֵיכֶם”", "מוֹרָא", "פְּרָס", "כְּבוֹד", "מַלְכוּת", "And let the fear of Heaven be upon you."],
+    ["Which pair is matched correctly?", "פְּרָס = reward", "עֲבָדִים = masters", "מוֹרָא = love", "אֶלָּא = because", "פְּרָס = reward · עֲבָדִים = servants · מוֹרָא = fear, awe · אֶלָּא = but rather"],
+    ["Two students misunderstood this mishnah and thought there's no reward at all. Which group came from one of them?", "The Tzedukim (Sadducees)", "The Chashmona'im", "The Pharisees", "The Men of the Great Assembly", "Tzadok and Baitos started the Tzedukim and the Baitusim (Avot DeRabbi Natan 5). Of course there IS reward, just don't serve for it!"],
+  ]},
+  // 1:4 יוֹסֵי בֶן יוֹעֶזֶר אִישׁ צְרֵדָה וְיוֹסֵי בֶן יוֹחָנָן אִישׁ יְרוּשָׁלַיִם קִבְּלוּ מֵהֶם. יוֹסֵי בֶן יוֹעֶזֶר אִישׁ צְרֵדָה אוֹמֵר,
+  //     יְהִי בֵיתְךָ בֵית וַעַד לַחֲכָמִים, וֶהֱוֵי מִתְאַבֵּק בַּעֲפַר רַגְלֵיהֶם, וֶהֱוֵי שׁוֹתֶה בְצָמָא אֶת דִּבְרֵיהֶם
+  { id: "m4", name: "Mishnah 4: יוֹסֵי בֶן יוֹעֶזֶר", icon: "🏠", q: [
+    ["Who received the Torah next, in Mishnah 4?", "Yossi ben Yoezer and Yossi ben Yochanan", "Antigonus of Socho", "Shimon HaTzaddik", "Hillel and Shammai", "Two people at once! They're the first of the זוּגוֹת, the five Pairs."],
+    ["What were the זוּגוֹת (Pairs)?", "Two leaders at a time: the Nasi and the Av Beit Din", "Twins who were both rabbis", "Two people who always argued", "A father and his son", "There were five pairs. The last pair was Hillel and Shammai."],
+    ["Where was Yossi ben Yoezer from?", "צְרֵדָה", "יְרוּשָׁלַיִם", "סוֹכוֹ", "בָּבֶל", "“יוֹסֵי בֶן יוֹעֶזֶר אִישׁ צְרֵדָה”"],
+    ["Where was Yossi ben Yochanan from?", "יְרוּשָׁלַיִם", "צְרֵדָה", "סוֹכוֹ", "חֶבְרוֹן", "“וְיוֹסֵי בֶן יוֹחָנָן אִישׁ יְרוּשָׁלַיִם”. His teaching comes in the next mishnah."],
+    ["What does “קִבְּלוּ מֵהֶם” mean?", "They received from them", "They gave to them", "They learned with them", "They were accepted by them", "'Them' is plural: they received from the ones before them, Shimon HaTzaddik and Antigonus."],
+    ["What does “יְהִי בֵיתְךָ בֵית וַעַד לַחֲכָמִים” mean?", "Let your house be a meeting place for the wise", "Let your house be big and beautiful", "Let your house be a shul", "Build a house for the wise men", "The Bartenura compares it to a perfume shop: even if you buy nothing, you come out smelling good. Sages in your home rub off on you!"],
+    ["What does בֵית וַעַד mean?", "A meeting place", "A house of prayer", "A school building", "A house of judgement", "וַעַד = meeting. In modern Hebrew a וַעַד is a committee."],
+    ["What does חֲכָמִים mean?", "The wise (Sages)", "The rich", "The guests", "The old", "חָכָם = wise. The Sages of the Mishnah are called חז״ל: חֲכָמֵינוּ זִכְרוֹנָם לִבְרָכָה."],
+    ["What does “וֶהֱוֵי מִתְאַבֵּק בַּעֲפַר רַגְלֵיהֶם” mean?", "Sit in the dust of their feet", "Clean the dust off their feet", "Wash their feet", "Walk far away from them", "Students sat on the ground at their teacher's feet, or followed them so closely the dust got on them."],
+    ["What does עֲפַר mean?", "Dust", "Water", "Shoes", "Floor", "עָפָר = dust or earth. רַגְלֵיהֶם = their feet."],
+    ["What does “וֶהֱוֵי שׁוֹתֶה בְצָמָא אֶת דִּבְרֵיהֶם” mean?", "Drink in their words thirstily", "Give them water when they are thirsty", "Don't speak while they are drinking", "Write down every word they say", "Take in their Torah eagerly, like a thirsty person gulps water. 💧"],
+    ["What does צָמָא mean?", "Thirst", "Hunger", "Water", "Tiredness", "Torah is compared to water: “הוֹי כָּל צָמֵא לְכוּ לַמַּיִם” (Yeshayahu 55:1)."],
+    ["How many things does Yossi ben Yoezer teach?", "3", "1", "2", "4", "1. Make your home a meeting place for Sages. 2. Sit in the dust of their feet. 3. Drink their words thirstily."],
+    ["What is the main lesson of Yossi ben Yoezer?", "Stay close to Torah scholars and learn from them eagerly", "Keep your house clean for guests", "Drink plenty of water", "Only rabbis should have visitors", "All three of his teachings are about how to treat Torah scholars and their words."],
+    ["Complete: “יְהִי בֵיתְךָ בֵית ___ לַחֲכָמִים”", "וַעַד", "כְּנֶסֶת", "מִדְרָשׁ", "דִּין", "Let your house be a meeting place for the wise."],
+    ["Complete: “וֶהֱוֵי מִתְאַבֵּק ___ רַגְלֵיהֶם”", "בַּעֲפַר", "בְּבֵית", "בְּנַעֲלֵי", "בְּצֵל", "Sit in the dust of their feet."],
+    ["Complete: “וֶהֱוֵי שׁוֹתֶה ___ אֶת דִּבְרֵיהֶם”", "בְצָמָא", "בְשִׂמְחָה", "בְמַיִם", "בְשֶׁקֶט", "Drink their words thirstily."],
+    ["Which pair is matched correctly?", "צָמָא = thirst", "עֲפַר = water", "חֲכָמִים = feet", "בֵיתְךָ = their words", "צָמָא = thirst · עֲפַר = dust · חֲכָמִים = the wise · בֵיתְךָ = your house · דִּבְרֵיהֶם = their words"],
+  ]},
+  { id: "who", name: "Who said it?", icon: "🗣️", q: [
+    ["Who said “הֱווּ מְתוּנִים בַּדִּין”?", "The Men of the Great Assembly", "Shimon HaTzaddik", "Antigonus of Socho", "Yossi ben Yoezer", "Mishnah 1: their three things are be patient in judgement, raise many students, make a fence for the Torah."],
+    ["Who said “עַל שְׁלשָׁה דְבָרִים הָעוֹלָם עוֹמֵד”?", "Shimon HaTzaddik", "The Men of the Great Assembly", "Antigonus of Socho", "Moshe", "Mishnah 2: Torah, Avodah and Gemilut Chasadim."],
+    ["Who said “אַל תִּהְיוּ כַעֲבָדִים הַמְשַׁמְּשִׁין אֶת הָרַב עַל מְנָת לְקַבֵּל פְּרָס”?", "Antigonus of Socho", "Shimon HaTzaddik", "Yossi ben Yoezer", "Yossi ben Yochanan", "Mishnah 3: serve without thinking about the reward."],
+    ["Who said “יְהִי בֵיתְךָ בֵית וַעַד לַחֲכָמִים”?", "Yossi ben Yoezer", "Yossi ben Yochanan", "Antigonus of Socho", "Shimon HaTzaddik", "Mishnah 4. Careful: Yossi ben Yochanan's saying (about the poor in your house) is in Mishnah 5."],
+    ["Who said “וַעֲשׂוּ סְיָג לַתּוֹרָה”?", "The Men of the Great Assembly", "Yossi ben Yoezer", "Shimon HaTzaddik", "Yehoshua", "Their third saying in Mishnah 1."],
+    ["Who said “וִיהִי מוֹרָא שָׁמַיִם עֲלֵיכֶם”?", "Antigonus of Socho", "Shimon HaTzaddik", "The Men of the Great Assembly", "Yossi ben Yoezer", "The end of Mishnah 3."],
+    ["Who said “וֶהֱוֵי שׁוֹתֶה בְצָמָא אֶת דִּבְרֵיהֶם”?", "Yossi ben Yoezer", "Antigonus of Socho", "Yossi ben Yochanan", "Shimon HaTzaddik", "The last of Yossi ben Yoezer's three teachings, in Mishnah 4."],
+    ["Who said “וְהַעֲמִידוּ תַלְמִידִים הַרְבֵּה”?", "The Men of the Great Assembly", "Antigonus of Socho", "Yossi ben Yoezer", "Shimon HaTzaddik", "Mishnah 1: raise up many students."],
+    ["Who did Antigonus of Socho receive the Torah from?", "Shimon HaTzaddik", "The Men of the Great Assembly", "Yossi ben Yoezer", "Ezra", "“קִבֵּל מִשִּׁמְעוֹן הַצַּדִּיק” (Mishnah 3)."],
+    ["Put them in order, from earliest to latest:", "Great Assembly → Shimon HaTzaddik → Antigonus → the two Yossis", "Shimon HaTzaddik → Great Assembly → Antigonus → the two Yossis", "Great Assembly → Antigonus → Shimon HaTzaddik → the two Yossis", "The two Yossis → Antigonus → Shimon HaTzaddik → Great Assembly", "Mishnah 1 → 2 → 3 → 4: the chain keeps going in order."],
+    ["Which TWO mishnayot use the word קִבֵּל (he received)?", "Mishnah 1 and Mishnah 3", "Mishnah 1 and Mishnah 2", "Mishnah 2 and Mishnah 4", "Mishnah 2 and Mishnah 3", "Mishnah 1: “מֹשֶׁה קִבֵּל”. Mishnah 3: “אַנְטִיגְנוֹס … קִבֵּל”. (Mishnah 4 says קִבְּלוּ, because there are two of them.)"],
+  ]},
+];
+
 
 // Maths questions are made up fresh every time, so they never run out.
 const MATHS = (() => {
@@ -1359,6 +1592,8 @@ const TOPICS = [
   { id: 'space',     name: 'Space',            icon: '🚀', colour: '#5a4fcf' },
   { id: 'words',     name: 'Words',            icon: '📚', colour: '#e05a8a' },
   { id: 'ivrit',     name: 'Ivrit',            icon: '🇮🇱', colour: '#1550c8', he: 'עִבְרִית' },
+  { id: 'yediah',    name: 'Yediah Klalit',    icon: '📅', colour: '#d9482b', he: 'יְדִיעָה כְּלָלִית' },
+  { id: 'avot',      name: 'Pirkei Avot',      icon: '📖', colour: '#7a4a2a', he: 'פִּרְקֵי אָבוֹת' },
   { id: 'maths',     name: 'Maths',            icon: '🔢', colour: '#f0a020' },
   { id: 'sport',     name: 'Sport',            icon: '⚽', colour: '#2e9e4a' },
   { id: 'mixed',     name: 'Mixed Bag',        icon: '🎲', colour: '#7a6fa0' },
