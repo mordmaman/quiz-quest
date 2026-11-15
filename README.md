@@ -36,6 +36,8 @@ Hebrew inside English sentences is shown right-to-left. If the device has a Hebr
 
 84 questions on chapter 1, mishnayot 1–4 (with nikud): a section for each mishnah, plus "Who said it?". The question types are translating the mishnah and single words, matching words to meanings ("Which pair is matched correctly?"), explaining what the mishnah teaches, and completing the mishnah from a choice of words. The same questions are used at every level. To add more mishnayot, add sections to `src/avot.js`.
 
+**Sephardi or Ashkenazi spelling:** Yediah Klalit and Pirkei Avot have a Spelling switch on their section screen (and in Family Battle when one of them is picked). Ashkenazi swaps the English transliterations, e.g. Shavuot → Shavuos, Avot → Avos, Beit → Beis, Tevet → Teves. The choice is saved on the device. The questions are written in Sephardi spelling; to add a word to the swap, add it to the `ASHK` list in `src/app.html`.
+
 ## Adding or changing questions
 
 The questions are in `src/q1.js`, `src/q2.js` and `src/q3.js`, the Ivrit ones are in `src/ivrit-young.js` (Age 7 and 11), `src/ivrit-gcse.js` (Age 14) and `src/ivrit-adult.js`, and Yediah Klalit and Pirkei Avot are in `src/yediah.js` and `src/avot.js`. Each one looks like this:
