@@ -13,7 +13,7 @@ A family quiz with questions pitched at four levels: **Age 7**, **Age 11**, **Ag
 
 ## Topics
 
-Animals & Nature, Science, Geography, History, Space, Words, Ivrit, Maths, Sport and Mixed Bag.
+Animals & Nature, Science, Geography, History, Space, Words, Ivrit, Yediah Klalit, Pirkei Avot, Maths, Sport and Mixed Bag.
 
 The 420 general-knowledge questions are 15 per topic per level. Maths questions are generated fresh each time and show the working.
 
@@ -28,9 +28,17 @@ The 420 general-knowledge questions are 15 per topic per level. Maths questions 
 
 Hebrew inside English sentences is shown right-to-left. If the device has a Hebrew voice, "Read it to me" says the Hebrew in Hebrew, and 🗣️ buttons read just the Hebrew (handy for listening practice). In the Alef-bet section the Hebrew is only read out after you answer, so it doesn't give the game away.
 
+### Yediah Klalit (general Jewish knowledge)
+
+93 questions from the yediah klalit revision cards, in five sections: Months of the year (order, how many days), Festivals & fasts (what's on which date), Brachot (on things we smell and hear), Gematria, and Books of Tanach. The same questions are used at every level.
+
+### Pirkei Avot
+
+84 questions on chapter 1, mishnayot 1–4 (with nikud): a section for each mishnah, plus "Who said it?". The question types are translating the mishnah and single words, matching words to meanings ("Which pair is matched correctly?"), explaining what the mishnah teaches, and completing the mishnah from a choice of words. The same questions are used at every level. To add more mishnayot, add sections to `src/avot.js`.
+
 ## Adding or changing questions
 
-The questions are in `src/q1.js`, `src/q2.js` and `src/q3.js`, and the Ivrit ones are in `src/ivrit-young.js` (Age 7 and 11), `src/ivrit-gcse.js` (Age 14) and `src/ivrit-adult.js`. Each one looks like this:
+The questions are in `src/q1.js`, `src/q2.js` and `src/q3.js`, the Ivrit ones are in `src/ivrit-young.js` (Age 7 and 11), `src/ivrit-gcse.js` (Age 14) and `src/ivrit-adult.js`, and Yediah Klalit and Pirkei Avot are in `src/yediah.js` and `src/avot.js`. Each one looks like this:
 
 ```js
 ["Question?", "Right answer", "Wrong answer", "Wrong answer", "Wrong answer", "Did you know? fact"],

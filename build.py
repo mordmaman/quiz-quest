@@ -4,7 +4,7 @@ from pathlib import Path
 
 here = Path(__file__).parent
 src = here / "src"
-QUESTION_FILES = ["q1.js", "q2.js", "q3.js", "ivrit-young.js", "ivrit-gcse.js", "ivrit-adult.js"]
+QUESTION_FILES = ["q1.js", "q2.js", "q3.js", "ivrit-young.js", "ivrit-gcse.js", "ivrit-adult.js", "yediah.js", "avot.js"]
 
 app = (src / "app.html").read_text(encoding="utf-8")
 questions = "\n".join((src / f).read_text(encoding="utf-8") for f in QUESTION_FILES)
